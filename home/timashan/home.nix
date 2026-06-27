@@ -28,6 +28,12 @@
 
   programs.home-manager.enable = true;
 
+  # KDE: System Settings > Keyboard > NumLock on startup = Turn on
+  xdg.configFile."kcminputrc".text = ''
+    [Keyboard]
+    NumLock=0
+  '';
+
   home.sessionVariables = {
     EDITOR = "code --wait";
     VISUAL = "code --wait";

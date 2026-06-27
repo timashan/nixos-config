@@ -1,5 +1,11 @@
 { lib, pkgs, ... }:
 
+let
+  sddmKcminputrc = pkgs.writeText "sddm-kcminputrc" ''
+    [Keyboard]
+    NumLock=0
+  '';
+in
 {
   # Plasma 6 is the stable default here. It gives good Wayland, monitor, audio,
   # Bluetooth, power, and NVIDIA hybrid graphics integration without needing a
@@ -13,7 +19,15 @@
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true;
+    # Wayland SDDM uses KWin, which reads /var/lib/sddm/.config/kcminputrc for Num Lock.
+    # sddm.conf Numlock=on and xkb num:alwayson only fight that and cause ON→OFF→ON flicker.
+    settings.General.GreeterEnvironment = "QT_WAYLAND_SHELL_INTEGRATION=layer-shell";
   };
+
+  systemd.tmpfiles.rules = [
+    "d /var/lib/sddm/.config 0755 sddm sddm -"
+    "L+ /var/lib/sddm/.config/kcminputrc - - - - ${sddmKcminputrc}"
+  ];
   services.desktopManager.plasma6.enable = true;
 
   xdg.portal = {
