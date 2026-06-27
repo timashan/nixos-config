@@ -1,0 +1,58 @@
+{ lib, pkgs, ... }:
+
+{
+  # Plasma 6 is the stable default here. It gives good Wayland, monitor, audio,
+  # Bluetooth, power, and NVIDIA hybrid graphics integration without needing a
+  # custom compositor setup on day one.
+  services.xserver.enable = true;
+  services.xserver.xkb = {
+    layout = "us";
+    variant = "";
+  };
+
+  services.displayManager.sddm = {
+    enable = true;
+    wayland.enable = true;
+  };
+  services.desktopManager.plasma6.enable = true;
+
+  xdg.portal = {
+    enable = true;
+    extraPortals = [ pkgs.kdePackages.xdg-desktop-portal-kde ];
+    config.common.default = [ "kde" ];
+  };
+
+  services.libinput.enable = true;
+  services.flatpak.enable = true;
+
+  programs.dconf.enable = true;
+  programs.kdeconnect.enable = true;
+
+  fonts = {
+    fontconfig.enable = true;
+    packages =
+      (with pkgs; [
+        inter
+        jetbrains-mono
+        noto-fonts
+        noto-fonts-cjk-sans
+        noto-fonts-color-emoji
+        liberation_ttf
+        dejavu_fonts
+      ])
+      ++ lib.optional (pkgs ? nerd-fonts && pkgs.nerd-fonts ? jetbrains-mono) pkgs.nerd-fonts.jetbrains-mono;
+  };
+
+  environment.systemPackages = with pkgs; [
+    kdePackages.kate
+    kdePackages.kcalc
+    kdePackages.ark
+    kdePackages.gwenview
+    kdePackages.okular
+    kdePackages.filelight
+    kdePackages.spectacle
+    kdePackages.dolphin-plugins
+    pavucontrol
+    crosspipe
+  ];
+}

@@ -1,0 +1,13 @@
+# Nix build outputs
+result
+result-*
+
+# Backups
+*.bak
+*~
+
+# One-time Windows preflight diagnostic dumps
+nixos-preflight-windows/
+
+# Editor / direnv
+.direnv/
