@@ -10,6 +10,19 @@
   ...
 }:
 
+let
+  system = pkgs.stdenv.hostPlatform.system;
+  patchedCaelestiaShell =
+    (caelestia-shell.packages.${system}.caelestia-shell.overrideAttrs (old: {
+      postInstall =
+        (old.postInstall or "")
+        + ''
+          launcher="$out/share/caelestia-shell/modules/launcher/services/Apps.qml"
+          substituteInPlace "$launcher" \
+            --replace-fail "            entry.execute();" "            Quickshell.execDetached({ command: [\"env\", \"QT_QPA_PLATFORMTHEME=kde\", \"QT_QPA_PLATFORM=wayland\", \"GDK_BACKEND=wayland,x11\", ...entry.command], workingDirectory: entry.workingDirectory });"
+        '';
+    }));
+in
 {
   imports = [
     codex-desktop-linux.homeManagerModules.default
@@ -27,6 +40,7 @@
 
   programs.caelestia = {
     enable = true;
+    package = patchedCaelestiaShell;
     systemd.enable = false;
     cli.enable = true;
     settings = {
@@ -36,6 +50,17 @@
         explorer = [ "thunar" ];
       };
       paths.wallpaperDir = "/home/${username}/Pictures/Wallpapers";
+      # Auto dark/light from wallpaper tone reloads the whole theme and can glitch external monitors.
+      services.smartScheme = false;
+      appearance.transparency.enabled = false;
+    };
+    cli.settings = {
+      theme = {
+        enableGtk = true;
+        enableQt = true;
+        # After Caelestia updates generated theme files, sync toolkit settings for native apps.
+        postHook = "caelestia-sync-gtk-settings";
+      };
     };
   };
 
@@ -44,6 +69,17 @@
   home.stateVersion = "26.05";
 
   programs.home-manager.enable = true;
+
+  xdg.configFile."caelestia/shell.json".force = true;
+  xdg.configFile."caelestia/cli.json".force = true;
+
+  xdg.dataFile."applications/org.kde.plasma-systemmonitor.desktop" = {
+    force = true;
+    text = builtins.replaceStrings
+      [ "Exec=plasma-systemmonitor" ]
+      [ "Exec=env QT_QPA_PLATFORMTHEME=kde QT_QPA_PLATFORM=wayland GDK_BACKEND=wayland,x11 plasma-systemmonitor" ]
+      (builtins.readFile "${pkgs.kdePackages.plasma-systemmonitor}/share/applications/org.kde.plasma-systemmonitor.desktop");
+  };
 
   # KDE: System Settings > Keyboard > NumLock on startup = Turn on
   xdg.configFile."kcminputrc".text = ''

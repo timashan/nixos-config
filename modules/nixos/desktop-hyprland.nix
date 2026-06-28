@@ -41,6 +41,9 @@
     networkmanagerapplet
     papirus-icon-theme
     pavucontrol
+    qtengine
+    darkly
+    kdePackages.plasma-integration
     playerctl
     polkit_gnome
     slurp
