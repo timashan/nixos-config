@@ -33,6 +33,57 @@ let
       ]
       (lib.readFile "${dots}/hypr/hyprland/execs.lua");
 
+  fastfetchConfig = ''
+    {
+      "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+      "logo": {
+        "type": "builtin",
+        "source": "NixOS",
+        "color": {
+          "1": "#d69bb3",
+          "2": "#a99ad7",
+          "3": "#d69bb3",
+          "4": "#a99ad7",
+          "5": "#d69bb3",
+          "6": "#a99ad7"
+        }
+      },
+      "display": {
+        "separator": ": ",
+        "color": "#cbbbe8"
+      },
+      "modules": [
+        "title",
+        "separator",
+        "os",
+        "host",
+        "kernel",
+        "uptime",
+        "packages",
+        "shell",
+        "display",
+        "de",
+        "wm",
+        "wmtheme",
+        "theme",
+        "icons",
+        "font",
+        "cursor",
+        "terminal",
+        "terminalfont",
+        "cpu",
+        "gpu",
+        "memory",
+        "swap",
+        "disk",
+        "localip",
+        "locale",
+        "break",
+        "colors"
+      ]
+    }
+  '';
+
   hyprlandModuleFiles =
     lib.filter (name: name != "execs.lua") (builtins.attrNames (builtins.readDir "${dots}/hypr/hyprland"));
 
@@ -87,9 +138,14 @@ in
       "hypr/scheme" = cfgDir "${dots}/hypr/scheme";
       "hypr/variables.lua" = cfg "${dots}/hypr/variables.lua";
 
-      "fish" = cfgDir "${dots}/fish";
+      "fish/config.fish" = cfg "${dots}/fish/config.fish";
+      "fish/functions/fish_greeting.fish".text = ''
+        function fish_greeting
+            command -v fastfetch &> /dev/null && fastfetch
+        end
+      '';
       "foot" = cfgDir "${dots}/foot";
-      "fastfetch" = cfgDir "${dots}/fastfetch";
+      "fastfetch/config.jsonc".text = fastfetchConfig;
       "btop" = cfgDir "${dots}/btop";
       "micro" = cfgDir "${dots}/micro";
       "Thunar" = cfgDir "${dots}/thunar";
