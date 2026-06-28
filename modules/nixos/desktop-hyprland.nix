@@ -31,7 +31,6 @@
     fish
     foot
     fuzzel
-    gammastep
     glib
     gnome-keyring
     grim

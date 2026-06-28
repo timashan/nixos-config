@@ -21,17 +21,21 @@ let
     force = true;
   };
 
-  patchedExecs =
-    lib.replaceStrings
-      [
-        "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
-        "/usr/lib/geoclue-2.0/demos/agent"
-      ]
-      [
-        "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
-        "${pkgs.geoclue2}/libexec/geoclue-2.0/demos/agent"
-      ]
-      (lib.readFile "${dots}/hypr/hyprland/execs.lua");
+  patchedExecs = lib.concatStringsSep "\n" (
+    lib.filter (
+      line:
+      !(lib.hasInfix "gammastep" line)
+      && !(lib.hasInfix "geoclue-2.0/demos/agent" line)
+      && !(lib.hasInfix "Location provider and night light" line)
+    ) (
+      lib.splitString "\n" (
+        lib.replaceStrings
+          [ "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1" ]
+          [ "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1" ]
+          (lib.readFile "${dots}/hypr/hyprland/execs.lua")
+      )
+    )
+  );
 
   fastfetchConfig = ''
     {
@@ -107,7 +111,6 @@ in
       fish
       foot
       fuzzel
-      gammastep
       glib
       gnome-keyring
       jq
