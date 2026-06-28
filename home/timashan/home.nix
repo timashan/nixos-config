@@ -6,6 +6,7 @@
   codex-desktop-linux,
   codexCli,
   zen-browser,
+  caelestia-shell,
   ...
 }:
 
@@ -13,6 +14,8 @@
   imports = [
     codex-desktop-linux.homeManagerModules.default
     zen-browser.homeModules.beta
+    caelestia-shell.homeManagerModules.default
+    ./hyprland.nix
   ];
 
   programs.codexDesktopLinux = {
@@ -21,6 +24,20 @@
   };
 
   programs.zen-browser.enable = true;
+
+  programs.caelestia = {
+    enable = true;
+    systemd.enable = false;
+    cli.enable = true;
+    settings = {
+      general.apps = {
+        terminal = [ "foot" ];
+        audio = [ "pavucontrol" ];
+        explorer = [ "thunar" ];
+      };
+      paths.wallpaperDir = "/home/${username}/Pictures/Wallpapers";
+    };
+  };
 
   home.username = username;
   home.homeDirectory = "/home/${username}";
@@ -99,7 +116,7 @@ PY
   programs.git = {
     enable = true;
     lfs.enable = true;
-    extraConfig = {
+    settings = {
       init.defaultBranch = "main";
       pull.rebase = false;
       push.autoSetupRemote = true;
@@ -114,8 +131,8 @@ PY
     shellAliases = {
       ll = "ls -lah";
       gs = "git status";
-      rebuild = "sudo nixos-rebuild switch --flake ~/nixos-config#tuf-a15";
-      test-rebuild = "sudo nixos-rebuild test --flake ~/nixos-config#tuf-a15";
+      rebuild = "sudo nixos-rebuild switch --flake /etc/nixos#tuf-a15";
+      test-rebuild = "sudo nixos-rebuild test --flake /etc/nixos#tuf-a15";
       codex-login = "codex login --device-auth";
     };
     initContent = ''
@@ -135,7 +152,11 @@ PY
 
   programs.ssh = {
     enable = true;
-    addKeysToAgent = "yes";
+    settings = {
+      "*" = {
+        AddKeysToAgent = "yes";
+      };
+    };
   };
 
   programs.vscode = {

@@ -58,11 +58,11 @@
   services.upower.enable = true;
   powerManagement.enable = true;
 
-  services.logind = {
-    lidSwitch = "suspend";
-    lidSwitchExternalPower = "suspend";
-    lidSwitchDocked = "ignore";
-    powerKey = "poweroff";
+  services.logind.settings.Login = {
+    HandleLidSwitch = "suspend";
+    HandleLidSwitchExternalPower = "suspend";
+    HandleLidSwitchDocked = "ignore";
+    HandlePowerKey = "poweroff";
   };
 
   hardware.bluetooth = {

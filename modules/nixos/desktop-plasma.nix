@@ -32,8 +32,21 @@ in
 
   xdg.portal = {
     enable = true;
-    extraPortals = [ pkgs.kdePackages.xdg-desktop-portal-kde ];
-    config.common.default = [ "kde" ];
+    extraPortals = [
+      pkgs.kdePackages.xdg-desktop-portal-kde
+      pkgs.xdg-desktop-portal-gtk
+    ];
+    config = {
+      common.default = [ "gtk" ];
+      Hyprland.default = [
+        "hyprland"
+        "gtk"
+      ];
+      KDE.default = [
+        "kde"
+        "gtk"
+      ];
+    };
   };
 
   services.libinput.enable = true;

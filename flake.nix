@@ -24,6 +24,16 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
+
+    caelestia-shell = {
+      url = "github:caelestia-dots/shell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    caelestia-dots = {
+      url = "github:caelestia-dots/caelestia";
+      flake = false;
+    };
   };
 
   outputs =
@@ -34,6 +44,8 @@
       codex-desktop-linux,
       codex-cli-nix,
       zen-browser,
+      caelestia-shell,
+      caelestia-dots,
       ...
     }:
     let
@@ -57,7 +69,7 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.extraSpecialArgs = {
-              inherit hostname username codex-desktop-linux codexCli zen-browser;
+              inherit hostname username codex-desktop-linux codexCli zen-browser caelestia-shell caelestia-dots;
             };
             home-manager.users.${username} = import ./home/timashan/home.nix;
           }
