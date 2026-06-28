@@ -119,6 +119,7 @@ in
       noto-fonts
       noto-fonts-cjk-sans
       noto-fonts-color-emoji
+      nwg-displays
       papirus-icon-theme
       pavucontrol
       playerctl
@@ -164,10 +165,22 @@ in
           browser = "zen",
           editor = "code",
           fileExplorer = "thunar",
+          kbPinWindow = "SUPER + SHIFT + P",
         }
       '';
       "caelestia/hypr-user.lua".text = ''
-        return {}
+        local home = os.getenv("HOME")
+        package.path = package.path .. ";" .. home .. "/.config/hypr/?.lua"
+
+        if io.open(home .. "/.config/hypr/monitors.lua") then
+          require("monitors")
+        end
+
+        if io.open(home .. "/.config/hypr/workspaces.lua") then
+          require("workspaces")
+        end
+
+        hl.bind("SUPER + P", hl.dsp.exec_cmd("nwg-displays"))
       '';
     };
 
