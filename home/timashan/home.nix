@@ -38,6 +38,11 @@ in
 
   programs.zen-browser.enable = true;
 
+  home.file."Pictures/Wallpapers" = {
+    source = ./wallpapers;
+    recursive = true;
+  };
+
   programs.caelestia = {
     enable = true;
     package = patchedCaelestiaShell;
@@ -50,8 +55,7 @@ in
         explorer = [ "thunar" ];
       };
       paths.wallpaperDir = "/home/${username}/Pictures/Wallpapers";
-      # Auto dark/light from wallpaper tone reloads the whole theme and can glitch external monitors.
-      services.smartScheme = false;
+      services.smartScheme = true;
       appearance.transparency.enabled = false;
     };
     cli.settings = {
