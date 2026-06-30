@@ -47,6 +47,17 @@
       deno
       python3
       uv
+      go
+      rustup
+      R
+      awscli2
+      terraform
+      opentofu
+      kubectl
+      kubernetes-helm
+      k9s
+      kind
+      oci-cli
       ruff
       pyright
       gcc
@@ -55,6 +66,7 @@
       pkg-config
       openssl
       docker-compose
+      flutter
       android-tools
       jdk21
       direnv

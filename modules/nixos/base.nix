@@ -88,8 +88,6 @@
     bash-completion
     curl
     wget
-    git
-    git-lfs
     vim
     nano
     pciutils
