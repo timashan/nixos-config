@@ -52,9 +52,30 @@
       system = "x86_64-linux";
       hostname = "tuf-a15";
       username = "timashan";
+      pkgs = nixpkgs.legacyPackages.${system};
       codexCli = codex-cli-nix.packages.${system}.default;
     in
     {
+      formatter.${system} = pkgs.writeShellApplication {
+        name = "nixfmt";
+        runtimeInputs = [
+          pkgs.findutils
+          pkgs.git
+          pkgs.nixfmt
+        ];
+        text = ''
+          if [ "$#" -gt 0 ]; then
+            exec nixfmt "$@"
+          fi
+
+          if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+            git ls-files '*.nix' -z | xargs -0 --no-run-if-empty nixfmt
+          else
+            find . -type f -name '*.nix' -not -path './.git/*' -print0 | xargs -0 --no-run-if-empty nixfmt
+          fi
+        '';
+      };
+
       nixosConfigurations.${hostname} = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = {
