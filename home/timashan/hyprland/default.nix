@@ -9,6 +9,7 @@
 let
   home = config.home.homeDirectory;
   dots = caelestia-dots;
+  vscodeSettings = ../vscode/settings.json;
 
   cfg = path: {
     source = path;
@@ -439,8 +440,9 @@ in
     "Thunar" = cfgDir "${dots}/thunar";
     "starship.toml" = cfg "${dots}/starship.toml";
 
-    "Code/User/settings.json" = cfg "${dots}/vscode/settings.json";
+    "Code/User/settings.json" = cfg vscodeSettings;
     "Code/User/keybindings.json" = cfg "${dots}/vscode/keybindings.json";
+    "Cursor/User/settings.json" = cfg vscodeSettings;
     "code-flags.conf" = cfg "${dots}/vscode/flags.conf";
 
     "caelestia/hypr-vars.lua".text = ''
