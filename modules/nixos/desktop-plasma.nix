@@ -67,7 +67,9 @@ in
         liberation_ttf
         dejavu_fonts
       ])
-      ++ lib.optional (pkgs ? nerd-fonts && pkgs.nerd-fonts ? jetbrains-mono) pkgs.nerd-fonts.jetbrains-mono;
+      ++ lib.optional (
+        pkgs ? nerd-fonts && pkgs.nerd-fonts ? jetbrains-mono
+      ) pkgs.nerd-fonts.jetbrains-mono;
   };
 
   environment.systemPackages = with pkgs; [

@@ -12,7 +12,7 @@
     package = pkgs.jdk21;
   };
 
-#   programs.adb.enable = true;
+  #   programs.adb.enable = true;
 
   virtualisation.docker = {
     enable = true;

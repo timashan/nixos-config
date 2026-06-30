@@ -90,7 +90,15 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.extraSpecialArgs = {
-              inherit hostname username codex-desktop-linux codexCli zen-browser caelestia-shell caelestia-dots;
+              inherit
+                hostname
+                username
+                codex-desktop-linux
+                codexCli
+                zen-browser
+                caelestia-shell
+                caelestia-dots
+                ;
             };
             home-manager.users.${username} = import ./home/timashan/home.nix;
           }

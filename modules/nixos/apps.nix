@@ -29,4 +29,3 @@
     ])
     ++ lib.optional (pkgs ? libreoffice-qt6-fresh) pkgs.libreoffice-qt6-fresh;
 }
-

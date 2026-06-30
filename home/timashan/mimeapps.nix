@@ -1,12 +1,14 @@
 { pkgs, ... }:
 
 let
-  mkDefaults = desktop: mimeTypes: builtins.listToAttrs (
-    map (mimeType: {
-      name = mimeType;
-      value = [ desktop ];
-    }) mimeTypes
-  );
+  mkDefaults =
+    desktop: mimeTypes:
+    builtins.listToAttrs (
+      map (mimeType: {
+        name = mimeType;
+        value = [ desktop ];
+      }) mimeTypes
+    );
 
   imageDefaults = mkDefaults "org.kde.gwenview.desktop" [
     "image/avif"

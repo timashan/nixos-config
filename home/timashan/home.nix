@@ -12,16 +12,15 @@
 
 let
   system = pkgs.stdenv.hostPlatform.system;
-  patchedCaelestiaShell =
-    (caelestia-shell.packages.${system}.caelestia-shell.overrideAttrs (old: {
-      postInstall =
-        (old.postInstall or "")
-        + ''
-          launcher="$out/share/caelestia-shell/modules/launcher/services/Apps.qml"
-          substituteInPlace "$launcher" \
-            --replace-fail "            entry.execute();" "            Quickshell.execDetached({ command: [\"env\", \"QT_QPA_PLATFORMTHEME=kde\", \"QT_QPA_PLATFORM=wayland\", \"GDK_BACKEND=wayland,x11\", ...entry.command], workingDirectory: entry.workingDirectory });"
-        '';
-    }));
+  patchedCaelestiaShell = (
+    caelestia-shell.packages.${system}.caelestia-shell.overrideAttrs (old: {
+      postInstall = (old.postInstall or "") + ''
+        launcher="$out/share/caelestia-shell/modules/launcher/services/Apps.qml"
+        substituteInPlace "$launcher" \
+          --replace-fail "            entry.execute();" "            Quickshell.execDetached({ command: [\"env\", \"QT_QPA_PLATFORMTHEME=kde\", \"QT_QPA_PLATFORM=wayland\", \"GDK_BACKEND=wayland,x11\", ...entry.command], workingDirectory: entry.workingDirectory });"
+      '';
+    })
+  );
 in
 {
   imports = [
@@ -80,10 +79,15 @@ in
 
   xdg.dataFile."applications/org.kde.plasma-systemmonitor.desktop" = {
     force = true;
-    text = builtins.replaceStrings
-      [ "Exec=plasma-systemmonitor" ]
-      [ "Exec=env QT_QPA_PLATFORMTHEME=kde QT_QPA_PLATFORM=wayland GDK_BACKEND=wayland,x11 plasma-systemmonitor" ]
-      (builtins.readFile "${pkgs.kdePackages.plasma-systemmonitor}/share/applications/org.kde.plasma-systemmonitor.desktop");
+    text =
+      builtins.replaceStrings
+        [ "Exec=plasma-systemmonitor" ]
+        [
+          "Exec=env QT_QPA_PLATFORMTHEME=kde QT_QPA_PLATFORM=wayland GDK_BACKEND=wayland,x11 plasma-systemmonitor"
+        ]
+        (
+          builtins.readFile "${pkgs.kdePackages.plasma-systemmonitor}/share/applications/org.kde.plasma-systemmonitor.desktop"
+        );
   };
 
   # KDE: System Settings > Keyboard > NumLock on startup = Turn on
@@ -112,47 +116,47 @@ in
   };
 
   home.activation.codexDesktop = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    codexHome="${config.home.homeDirectory}/.codex"
-    configToml="$codexHome/config.toml"
-    globalState="$codexHome/.codex-global-state.json"
+        codexHome="${config.home.homeDirectory}/.codex"
+        configToml="$codexHome/config.toml"
+        globalState="$codexHome/.codex-global-state.json"
 
-    # Read-only plugin staging dirs from the Nix store break Codex Desktop.
-    $DRY_RUN_CMD rm -rf "$codexHome/.tmp/bundled-marketplaces/"*.staging-* 2>/dev/null || true
+        # Read-only plugin staging dirs from the Nix store break Codex Desktop.
+        $DRY_RUN_CMD rm -rf "$codexHome/.tmp/bundled-marketplaces/"*.staging-* 2>/dev/null || true
 
-    # Workaround for desktop onboarding / workspace-deps limbo (openai/codex#22009).
-    if [ -f "$configToml" ] && ! grep -q '^apps[[:space:]]*=' "$configToml"; then
-      if grep -q '^\[features\]' "$configToml"; then
-        $DRY_RUN_CMD sed -i '/^\[features\]/a apps = true' "$configToml"
-      else
-        $DRY_RUN_CMD printf '\n[features]\napps = true\n' >> "$configToml"
-      fi
-    fi
+        # Workaround for desktop onboarding / workspace-deps limbo (openai/codex#22009).
+        if [ -f "$configToml" ] && ! grep -q '^apps[[:space:]]*=' "$configToml"; then
+          if grep -q '^\[features\]' "$configToml"; then
+            $DRY_RUN_CMD sed -i '/^\[features\]/a apps = true' "$configToml"
+          else
+            $DRY_RUN_CMD printf '\n[features]\napps = true\n' >> "$configToml"
+          fi
+        fi
 
-    # Unstick onboarding when runtime installed but Desktop state never advanced.
-    if [ -f "$globalState" ]; then
-      $DRY_RUN_CMD ${pkgs.python3}/bin/python3 - <<'PY'
-import json
-from pathlib import Path
+        # Unstick onboarding when runtime installed but Desktop state never advanced.
+        if [ -f "$globalState" ]; then
+          $DRY_RUN_CMD ${pkgs.python3}/bin/python3 - <<'PY'
+    import json
+    from pathlib import Path
 
-p = Path("${config.home.homeDirectory}/.codex/.codex-global-state.json")
-data = json.loads(p.read_text())
-atom = data.get("electron-persisted-atom-state", {})
-runtime_ready = Path(
-    "${config.home.homeDirectory}/.cache/codex-runtimes/codex-primary-runtime/runtime.json"
-).is_file()
-stuck = (
-    atom.get("electron:onboarding-primary-runtime-install-requested") is True
-    and atom.get("electron:onboarding-primary-runtime-install-ready") is False
-) or atom.get("electron:onboarding-welcome-pending") is True
+    p = Path("${config.home.homeDirectory}/.codex/.codex-global-state.json")
+    data = json.loads(p.read_text())
+    atom = data.get("electron-persisted-atom-state", {})
+    runtime_ready = Path(
+        "${config.home.homeDirectory}/.cache/codex-runtimes/codex-primary-runtime/runtime.json"
+    ).is_file()
+    stuck = (
+        atom.get("electron:onboarding-primary-runtime-install-requested") is True
+        and atom.get("electron:onboarding-primary-runtime-install-ready") is False
+    ) or atom.get("electron:onboarding-welcome-pending") is True
 
-if runtime_ready and stuck:
-    atom["electron:onboarding-primary-runtime-install-ready"] = True
-    atom["electron:onboarding-primary-runtime-install-requested"] = False
-    atom["electron:onboarding-welcome-pending"] = False
-    data["electron-persisted-atom-state"] = atom
-    p.write_text(json.dumps(data))
-PY
-    fi
+    if runtime_ready and stuck:
+        atom["electron:onboarding-primary-runtime-install-ready"] = True
+        atom["electron:onboarding-primary-runtime-install-requested"] = False
+        atom["electron:onboarding-welcome-pending"] = False
+        data["electron-persisted-atom-state"] = atom
+        p.write_text(json.dumps(data))
+    PY
+        fi
   '';
 
   programs.git = {

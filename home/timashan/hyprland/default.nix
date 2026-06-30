@@ -25,38 +25,41 @@ let
   dbusUpdate = lib.getExe' pkgs.dbus "dbus-update-activation-environment";
   systemctl = lib.getExe' pkgs.systemd "systemctl";
 
-  patchedExecs = lib.concatStringsSep "\n" (
-    lib.filter (
-      line:
-      !(lib.hasInfix "gammastep" line)
-      && !(lib.hasInfix "geoclue-2.0/demos/agent" line)
-      && !(lib.hasInfix "Location provider and night light" line)
-    ) (
-      lib.splitString "\n" (
-        lib.replaceStrings
-          [
-            "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
-            "gsettings set"
-            "caelestia shell -d"
-          ]
-          [
-            "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
-            "${gsettings} set"
-            "env QT_QPA_PLATFORMTHEME=qtengine caelestia shell -d"
-          ]
-          (lib.readFile "${dots}/hypr/hyprland/execs.lua")
-      )
+  patchedExecs =
+    lib.concatStringsSep "\n" (
+      lib.filter
+        (
+          line:
+          !(lib.hasInfix "gammastep" line)
+          && !(lib.hasInfix "geoclue-2.0/demos/agent" line)
+          && !(lib.hasInfix "Location provider and night light" line)
+        )
+        (
+          lib.splitString "\n" (
+            lib.replaceStrings
+              [
+                "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
+                "gsettings set"
+                "caelestia shell -d"
+              ]
+              [
+                "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
+                "${gsettings} set"
+                "env QT_QPA_PLATFORMTHEME=qtengine caelestia shell -d"
+              ]
+              (lib.readFile "${dots}/hypr/hyprland/execs.lua")
+          )
+        )
     )
-  )
-  + ''
+    + ''
 
-    -- Keep DBus/systemd-launched apps on KDE's Qt platform theme.
-    hl.exec_cmd("${systemctl} --user set-environment QT_QPA_PLATFORMTHEME=kde 'QT_QPA_PLATFORM=wayland;xcb' GDK_BACKEND=wayland,x11 XDG_MENU_PREFIX=plasma-")
-    hl.exec_cmd("${dbusUpdate} --systemd QT_QPA_PLATFORMTHEME=kde 'QT_QPA_PLATFORM=wayland;xcb' GDK_BACKEND=wayland,x11 XDG_MENU_PREFIX=plasma- XDG_CURRENT_DESKTOP=Hyprland XDG_SESSION_TYPE=wayland XDG_SESSION_DESKTOP=Hyprland")
+      -- Keep DBus/systemd-launched apps on KDE's Qt platform theme.
+      hl.exec_cmd("${systemctl} --user set-environment QT_QPA_PLATFORMTHEME=kde 'QT_QPA_PLATFORM=wayland;xcb' GDK_BACKEND=wayland,x11 XDG_MENU_PREFIX=plasma-")
+      hl.exec_cmd("${dbusUpdate} --systemd QT_QPA_PLATFORMTHEME=kde 'QT_QPA_PLATFORM=wayland;xcb' GDK_BACKEND=wayland,x11 XDG_MENU_PREFIX=plasma- XDG_CURRENT_DESKTOP=Hyprland XDG_SESSION_TYPE=wayland XDG_SESSION_DESKTOP=Hyprland")
 
-    -- Sync toolkit settings for native apps without repainting apps during startup.
-    hl.exec_cmd("CAELESTIA_SYNC_NOTIFY=0 caelestia-sync-gtk-settings")
-'';
+      -- Sync toolkit settings for native apps without repainting apps during startup.
+      hl.exec_cmd("CAELESTIA_SYNC_NOTIFY=0 caelestia-sync-gtk-settings")
+    '';
 
   fastfetchConfig = ''
     {
@@ -109,10 +112,13 @@ let
     }
   '';
 
-  hyprlandModuleFiles =
-    lib.filter (name: !(builtins.elem name [ "env.lua" "execs.lua" ])) (
-      builtins.attrNames (builtins.readDir "${dots}/hypr/hyprland")
-    );
+  hyprlandModuleFiles = lib.filter (
+    name:
+    !(builtins.elem name [
+      "env.lua"
+      "execs.lua"
+    ])
+  ) (builtins.attrNames (builtins.readDir "${dots}/hypr/hyprland"));
 
   hyprlandModuleConfig = lib.listToAttrs (
     map (name: {
@@ -286,88 +292,89 @@ let
   '';
 
   caelestiaSyncGtkSettings = pkgs.writeShellScriptBin "caelestia-sync-gtk-settings" ''
-    set -euo pipefail
-    schemeFile="${home}/.local/state/caelestia/scheme.json"
-    if [ ! -f "$schemeFile" ]; then
-      exit 0
-    fi
+        set -euo pipefail
+        schemeFile="${home}/.local/state/caelestia/scheme.json"
+        if [ ! -f "$schemeFile" ]; then
+          exit 0
+        fi
 
-    mode=$(${pkgs.jq}/bin/jq -r .mode "$schemeFile")
-    if [ "$mode" = "dark" ]; then
-      preferDark=true
-      gtkTheme=adw-gtk3-dark
-      iconTheme=Papirus-Dark
-      kdeColorScheme=BreezeDark
-      kdeLookAndFeel=org.kde.breezedark.desktop
-    else
-      preferDark=false
-      gtkTheme=adw-gtk3
-      iconTheme=Papirus-Light
-      kdeColorScheme=BreezeLight
-      kdeLookAndFeel=org.kde.breeze.desktop
-    fi
+        mode=$(${pkgs.jq}/bin/jq -r .mode "$schemeFile")
+        if [ "$mode" = "dark" ]; then
+          preferDark=true
+          gtkTheme=adw-gtk3-dark
+          iconTheme=Papirus-Dark
+          kdeColorScheme=BreezeDark
+          kdeLookAndFeel=org.kde.breezedark.desktop
+        else
+          preferDark=false
+          gtkTheme=adw-gtk3
+          iconTheme=Papirus-Light
+          kdeColorScheme=BreezeLight
+          kdeLookAndFeel=org.kde.breeze.desktop
+        fi
 
-    for ver in gtk-3.0 gtk-4.0; do
-      dir="${home}/.config/$ver"
-      mkdir -p "$dir"
-      cat > "$dir/settings.ini" <<EOF
-[Settings]
-gtk-application-prefer-dark-theme=$preferDark
-gtk-theme-name=$gtkTheme
-gtk-icon-theme-name=$iconTheme
-EOF
-    done
+        for ver in gtk-3.0 gtk-4.0; do
+          dir="${home}/.config/$ver"
+          mkdir -p "$dir"
+          cat > "$dir/settings.ini" <<EOF
+    [Settings]
+    gtk-application-prefer-dark-theme=$preferDark
+    gtk-theme-name=$gtkTheme
+    gtk-icon-theme-name=$iconTheme
+    EOF
+        done
 
-    export PATH="${lib.makeBinPath [ pkgs.dconf ]}:$PATH"
-    dconf write /org/gnome/desktop/interface/gtk-theme "'$gtkTheme'" >/dev/null 2>&1 || true
-    dconf write /org/gnome/desktop/interface/color-scheme "'prefer-$mode'" >/dev/null 2>&1 || true
-    dconf write /org/gnome/desktop/interface/icon-theme "'$iconTheme'" >/dev/null 2>&1 || true
+        export PATH="${lib.makeBinPath [ pkgs.dconf ]}:$PATH"
+        dconf write /org/gnome/desktop/interface/gtk-theme "'$gtkTheme'" >/dev/null 2>&1 || true
+        dconf write /org/gnome/desktop/interface/color-scheme "'prefer-$mode'" >/dev/null 2>&1 || true
+        dconf write /org/gnome/desktop/interface/icon-theme "'$iconTheme'" >/dev/null 2>&1 || true
 
-    kdeglobals="${home}/.config/kdeglobals"
-    kdeSchemeFile="${pkgs.kdePackages.breeze}/share/color-schemes/$kdeColorScheme.colors"
-    if [ -f "$kdeSchemeFile" ]; then
-      mkdir -p "$(dirname "$kdeglobals")"
-      touch "$kdeglobals"
-      paletteTmp="$(mktemp)"
-      kdeglobalsTmp="$(mktemp)"
-      ${pkgs.gawk}/bin/awk '
-        /^\[/ {
-          keep = ($0 ~ /^\[(ColorEffects:|Colors:|WM\])/)
-        }
-        keep { print }
-      ' "$kdeSchemeFile" > "$paletteTmp"
-      ${pkgs.gawk}/bin/awk '
-        /^\[/ {
-          skip = ($0 ~ /^\[(ColorEffects:|Colors:|WM\])/)
-        }
-        !skip { print }
-      ' "$kdeglobals" > "$kdeglobalsTmp"
-      printf "\n" >> "$kdeglobalsTmp"
-      cat "$paletteTmp" >> "$kdeglobalsTmp"
-      mv "$kdeglobalsTmp" "$kdeglobals"
-      rm -f "$paletteTmp"
-    fi
+        kdeglobals="${home}/.config/kdeglobals"
+        kdeSchemeFile="${pkgs.kdePackages.breeze}/share/color-schemes/$kdeColorScheme.colors"
+        if [ -f "$kdeSchemeFile" ]; then
+          mkdir -p "$(dirname "$kdeglobals")"
+          touch "$kdeglobals"
+          paletteTmp="$(mktemp)"
+          kdeglobalsTmp="$(mktemp)"
+          ${pkgs.gawk}/bin/awk '
+            /^\[/ {
+              keep = ($0 ~ /^\[(ColorEffects:|Colors:|WM\])/)
+            }
+            keep { print }
+          ' "$kdeSchemeFile" > "$paletteTmp"
+          ${pkgs.gawk}/bin/awk '
+            /^\[/ {
+              skip = ($0 ~ /^\[(ColorEffects:|Colors:|WM\])/)
+            }
+            !skip { print }
+          ' "$kdeglobals" > "$kdeglobalsTmp"
+          printf "\n" >> "$kdeglobalsTmp"
+          cat "$paletteTmp" >> "$kdeglobalsTmp"
+          mv "$kdeglobalsTmp" "$kdeglobals"
+          rm -f "$paletteTmp"
+        fi
 
-    kwriteconfig6="${lib.getExe' pkgs.kdePackages.kconfig "kwriteconfig6"}"
-    "$kwriteconfig6" --file kdeglobals --group General --key ColorScheme "$kdeColorScheme" >/dev/null 2>&1 || true
-    "$kwriteconfig6" --file kdeglobals --group General --key ColorSchemeHash --delete >/dev/null 2>&1 || true
-    "$kwriteconfig6" --file kdeglobals --group KDE --key LookAndFeelPackage "$kdeLookAndFeel" >/dev/null 2>&1 || true
-    "$kwriteconfig6" --file kdeglobals --group KDE --key widgetStyle Breeze >/dev/null 2>&1 || true
-    "$kwriteconfig6" --file kdeglobals --group Icons --key Theme "$iconTheme" >/dev/null 2>&1 || true
+        kwriteconfig6="${lib.getExe' pkgs.kdePackages.kconfig "kwriteconfig6"}"
+        "$kwriteconfig6" --file kdeglobals --group General --key ColorScheme "$kdeColorScheme" >/dev/null 2>&1 || true
+        "$kwriteconfig6" --file kdeglobals --group General --key ColorSchemeHash --delete >/dev/null 2>&1 || true
+        "$kwriteconfig6" --file kdeglobals --group KDE --key LookAndFeelPackage "$kdeLookAndFeel" >/dev/null 2>&1 || true
+        "$kwriteconfig6" --file kdeglobals --group KDE --key widgetStyle Breeze >/dev/null 2>&1 || true
+        "$kwriteconfig6" --file kdeglobals --group Icons --key Theme "$iconTheme" >/dev/null 2>&1 || true
 
-    if [ "''${CAELESTIA_SYNC_NOTIFY:-1}" != "0" ]; then
-      # Tell running KDE/Qt apps to reload the palette/style/icon settings.
-      for changeType in 0 2 4; do
-        ${pkgs.dbus}/bin/dbus-send --session --type=signal /KGlobalSettings \
-          org.kde.KGlobalSettings.notifyChange int32:"$changeType" int32:0 >/dev/null 2>&1 || true
-      done
-    fi
+        if [ "''${CAELESTIA_SYNC_NOTIFY:-1}" != "0" ]; then
+          # Tell running KDE/Qt apps to reload the palette/style/icon settings.
+          for changeType in 0 2 4; do
+            ${pkgs.dbus}/bin/dbus-send --session --type=signal /KGlobalSettings \
+              org.kde.KGlobalSettings.notifyChange int32:"$changeType" int32:0 >/dev/null 2>&1 || true
+          done
+        fi
   '';
 
-  patchedEnv = lib.replaceStrings
-    [ ''hl.env("QT_QPA_PLATFORMTHEME", "qtengine")'' ]
-    [ ''hl.env("QT_QPA_PLATFORMTHEME", "kde")'' ]
-    (lib.readFile "${dots}/hypr/hyprland/env.lua");
+  patchedEnv =
+    lib.replaceStrings
+      [ ''hl.env("QT_QPA_PLATFORMTHEME", "qtengine")'' ]
+      [ ''hl.env("QT_QPA_PLATFORMTHEME", "kde")'' ]
+      (lib.readFile "${dots}/hypr/hyprland/env.lua");
 in
 {
   home.packages =
@@ -409,73 +416,73 @@ in
       ydotool
       zoxide
     ]
-    ++ lib.optional (pkgs ? nerd-fonts && pkgs.nerd-fonts ? jetbrains-mono) pkgs.nerd-fonts.jetbrains-mono;
+    ++ lib.optional (
+      pkgs ? nerd-fonts && pkgs.nerd-fonts ? jetbrains-mono
+    ) pkgs.nerd-fonts.jetbrains-mono;
 
-  xdg.configFile =
-    hyprlandModuleConfig
-    // {
-      "hypr/hyprland/env.lua".text = patchedEnv;
-      "hypr/hyprland/execs.lua".text = patchedExecs;
-      "hypr/scheme" = cfgDir "${dots}/hypr/scheme";
-      "hypr/variables.lua" = cfg "${dots}/hypr/variables.lua";
+  xdg.configFile = hyprlandModuleConfig // {
+    "hypr/hyprland/env.lua".text = patchedEnv;
+    "hypr/hyprland/execs.lua".text = patchedExecs;
+    "hypr/scheme" = cfgDir "${dots}/hypr/scheme";
+    "hypr/variables.lua" = cfg "${dots}/hypr/variables.lua";
 
-      "fish/config.fish" = cfg "${dots}/fish/config.fish";
-      "fish/functions/fish_greeting.fish".text = ''
-        function fish_greeting
-            command -v fastfetch &> /dev/null && fastfetch
-        end
-      '';
-      "foot" = cfgDir "${dots}/foot";
-      "fastfetch/config.jsonc".text = fastfetchConfig;
-      "btop" = cfgDir "${dots}/btop";
-      "micro" = cfgDir "${dots}/micro";
-      "Thunar" = cfgDir "${dots}/thunar";
-      "starship.toml" = cfg "${dots}/starship.toml";
+    "fish/config.fish" = cfg "${dots}/fish/config.fish";
+    "fish/functions/fish_greeting.fish".text = ''
+      function fish_greeting
+          command -v fastfetch &> /dev/null && fastfetch
+      end
+    '';
+    "foot" = cfgDir "${dots}/foot";
+    "fastfetch/config.jsonc".text = fastfetchConfig;
+    "btop" = cfgDir "${dots}/btop";
+    "micro" = cfgDir "${dots}/micro";
+    "Thunar" = cfgDir "${dots}/thunar";
+    "starship.toml" = cfg "${dots}/starship.toml";
 
-      "Code/User/settings.json" = cfg "${dots}/vscode/settings.json";
-      "Code/User/keybindings.json" = cfg "${dots}/vscode/keybindings.json";
-      "code-flags.conf" = cfg "${dots}/vscode/flags.conf";
+    "Code/User/settings.json" = cfg "${dots}/vscode/settings.json";
+    "Code/User/keybindings.json" = cfg "${dots}/vscode/keybindings.json";
+    "code-flags.conf" = cfg "${dots}/vscode/flags.conf";
 
-      "caelestia/hypr-vars.lua".text = ''
-        return {
-          terminal = "foot",
-          browser = "zen",
-          editor = "code",
-          fileExplorer = "dolphin",
-          kbPinWindow = "SUPER + SHIFT + P",
-        }
-      '';
-      "caelestia/hypr-user.lua".text = ''
-        local home = os.getenv("HOME")
-        package.path = package.path .. ";" .. home .. "/.config/hypr/?.lua"
+    "caelestia/hypr-vars.lua".text = ''
+      return {
+        terminal = "foot",
+        browser = "zen",
+        editor = "code",
+        fileExplorer = "dolphin",
+        kbPinWindow = "SUPER + SHIFT + P",
+      }
+    '';
+    "caelestia/hypr-user.lua".text = ''
+      local home = os.getenv("HOME")
+      package.path = package.path .. ";" .. home .. "/.config/hypr/?.lua"
 
-        if io.open(home .. "/.config/hypr/monitors.lua") then
-          require("monitors")
-        elseif io.open(home .. "/.config/hypr/hyprmon.lua") then
-          require("hyprmon")
-        end
+      if io.open(home .. "/.config/hypr/monitors.lua") then
+        require("monitors")
+      elseif io.open(home .. "/.config/hypr/hyprmon.lua") then
+        require("hyprmon")
+      end
 
-        if io.open(home .. "/.config/hypr/workspaces.lua") then
-          require("workspaces")
-        end
+      if io.open(home .. "/.config/hypr/workspaces.lua") then
+        require("workspaces")
+      end
 
-        hl.bind("SUPER + P", hl.dsp.exec_cmd("nwg-displays"))
-        hl.bind("SUPER + SHIFT + 1", hl.dsp.exec_cmd("hyprmon-profile internal"))
-        hl.bind("SUPER + SHIFT + 2", hl.dsp.exec_cmd("hyprmon-profile external"))
-        hl.bind("SUPER + SHIFT + 3", hl.dsp.exec_cmd("hyprmon-profile extend"))
-        hl.bind("SUPER + SHIFT + 4", hl.dsp.exec_cmd("hyprmon-profile extend-reverse"))
+      hl.bind("SUPER + P", hl.dsp.exec_cmd("nwg-displays"))
+      hl.bind("SUPER + SHIFT + 1", hl.dsp.exec_cmd("hyprmon-profile internal"))
+      hl.bind("SUPER + SHIFT + 2", hl.dsp.exec_cmd("hyprmon-profile external"))
+      hl.bind("SUPER + SHIFT + 3", hl.dsp.exec_cmd("hyprmon-profile extend"))
+      hl.bind("SUPER + SHIFT + 4", hl.dsp.exec_cmd("hyprmon-profile extend-reverse"))
 
-        -- Caelestia Shell is launched with qtengine in execs.lua; native Qt apps use KDE from env.lua.
-        hl.config({
-          misc = {
-            vrr = 0,
-          },
-          render = {
-            direct_scanout = 0,
-          },
-        })
-      '';
-    };
+      -- Caelestia Shell is launched with qtengine in execs.lua; native Qt apps use KDE from env.lua.
+      hl.config({
+        misc = {
+          vrr = 0,
+        },
+        render = {
+          direct_scanout = 0,
+        },
+      })
+    '';
+  };
 
   home.sessionVariables = {
     GTK2_RC_FILES = lib.mkDefault "${home}/.gtkrc-2.0";

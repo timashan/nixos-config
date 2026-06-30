@@ -40,4 +40,3 @@
   # Set this to the NixOS release used for the first install.
   system.stateVersion = "26.05";
 }
-
