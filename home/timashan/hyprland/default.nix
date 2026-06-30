@@ -51,8 +51,8 @@ let
   + ''
 
     -- Keep DBus/systemd-launched apps on KDE's Qt platform theme.
-    hl.exec_cmd("${systemctl} --user set-environment QT_QPA_PLATFORMTHEME=kde 'QT_QPA_PLATFORM=wayland;xcb' GDK_BACKEND=wayland,x11")
-    hl.exec_cmd("${dbusUpdate} --systemd QT_QPA_PLATFORMTHEME=kde 'QT_QPA_PLATFORM=wayland;xcb' GDK_BACKEND=wayland,x11 XDG_CURRENT_DESKTOP=Hyprland XDG_SESSION_TYPE=wayland XDG_SESSION_DESKTOP=Hyprland")
+    hl.exec_cmd("${systemctl} --user set-environment QT_QPA_PLATFORMTHEME=kde 'QT_QPA_PLATFORM=wayland;xcb' GDK_BACKEND=wayland,x11 XDG_MENU_PREFIX=plasma-")
+    hl.exec_cmd("${dbusUpdate} --systemd QT_QPA_PLATFORMTHEME=kde 'QT_QPA_PLATFORM=wayland;xcb' GDK_BACKEND=wayland,x11 XDG_MENU_PREFIX=plasma- XDG_CURRENT_DESKTOP=Hyprland XDG_SESSION_TYPE=wayland XDG_SESSION_DESKTOP=Hyprland")
 
     -- Sync toolkit settings for native apps without repainting apps during startup.
     hl.exec_cmd("CAELESTIA_SYNC_NOTIFY=0 caelestia-sync-gtk-settings")
@@ -441,7 +441,7 @@ in
           terminal = "foot",
           browser = "zen",
           editor = "code",
-          fileExplorer = "thunar",
+          fileExplorer = "dolphin",
           kbPinWindow = "SUPER + SHIFT + P",
         }
       '';
@@ -485,6 +485,7 @@ in
     QT_QPA_PLATFORMTHEME = lib.mkForce "kde";
     QT_QPA_PLATFORM = lib.mkDefault "wayland;xcb";
     GDK_BACKEND = lib.mkDefault "wayland,x11";
+    XDG_MENU_PREFIX = lib.mkDefault "plasma-";
   };
 
   home.activation.clearOldHyprShell = lib.hm.dag.entryBefore [ "linkGeneration" ] ''
@@ -528,6 +529,12 @@ in
   home.activation.caelestiaInitialState = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     ${pkgs.xdg-user-dirs}/bin/xdg-user-dirs-update >/dev/null 2>&1 || true
     mkdir -p "${home}/Pictures/Wallpapers"
+  '';
+
+  home.activation.rebuildKdeServiceCache = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ -z "''${DRY_RUN:-}" ]; then
+      XDG_MENU_PREFIX=plasma- ${lib.getExe' pkgs.kdePackages.kservice "kbuildsycoca6"} --noincremental >/dev/null 2>&1 || true
+    fi
   '';
 
   # Undo stale Caelestia/Darkly KDE state, then re-apply the current dark/light mode.

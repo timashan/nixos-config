@@ -28,6 +28,7 @@ in
     codex-desktop-linux.homeManagerModules.default
     zen-browser.homeModules.beta
     caelestia-shell.homeManagerModules.default
+    ./mimeapps.nix
     ./hyprland.nix
   ];
 
@@ -52,7 +53,7 @@ in
       general.apps = {
         terminal = [ "foot" ];
         audio = [ "pavucontrol" ];
-        explorer = [ "thunar" ];
+        explorer = [ "dolphin" ];
       };
       paths.wallpaperDir = "/home/${username}/Pictures/Wallpapers";
       services.smartScheme = true;
@@ -97,6 +98,7 @@ in
     BROWSER = lib.getExe pkgs.firefox;
     ANDROID_HOME = "/home/${username}/Android/Sdk";
     ANDROID_SDK_ROOT = "/home/${username}/Android/Sdk";
+    XDG_MENU_PREFIX = "plasma-";
   };
 
   # KDE Wayland: Electron is more reliable on X11 (codex-desktop-linux docs).
@@ -214,5 +216,6 @@ PY
     fzf
     ripgrep
     fd
+    yazi
   ];
 }
