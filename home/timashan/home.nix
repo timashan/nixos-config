@@ -74,8 +74,18 @@ in
 
   programs.home-manager.enable = true;
 
+  # force=true: HM must overwrite writable copies from the previous activation.
+  # activation: replace read-only store symlinks so Caelestia can auto-save at runtime.
   xdg.configFile."caelestia/shell.json".force = true;
   xdg.configFile."caelestia/cli.json".force = true;
+  home.activation.caelestiaWritableConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    caelestiaDir="${config.home.homeDirectory}/.config/caelestia"
+    $DRY_RUN_CMD mkdir -p "$caelestiaDir"
+    $DRY_RUN_CMD rm -f "$caelestiaDir/shell.json" "$caelestiaDir/cli.json"
+    $DRY_RUN_CMD cp ${config.xdg.configFile."caelestia/shell.json".source} "$caelestiaDir/shell.json"
+    $DRY_RUN_CMD cp ${config.xdg.configFile."caelestia/cli.json".source} "$caelestiaDir/cli.json"
+    $DRY_RUN_CMD chmod u+w "$caelestiaDir/shell.json" "$caelestiaDir/cli.json"
+  '';
 
   xdg.dataFile."applications/org.kde.plasma-systemmonitor.desktop" = {
     force = true;
