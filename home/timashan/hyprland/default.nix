@@ -474,6 +474,8 @@ in
       hl.bind("SUPER + SHIFT + 3", hl.dsp.exec_cmd("hyprmon-profile extend"))
       hl.bind("SUPER + SHIFT + 4", hl.dsp.exec_cmd("hyprmon-profile extend-reverse"))
 
+      hl.bind("SUPER + J", hl.dsp.layout("togglesplit"))
+
       -- Caelestia Shell is launched with qtengine in execs.lua; native Qt apps use KDE from env.lua.
       hl.config({
         misc = {
