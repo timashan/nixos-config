@@ -20,7 +20,7 @@
     "editor.formatOnSave": true,
     "prettier.printWidth": 120,
     "prettier.arrowParens": "avoid",
-    "window.autoDetectColorScheme": false,
+    "window.autoDetectColorScheme": true,
     "window.commandCenter": true,
     "window.menuBarVisibility": "visible",
     "window.titleBarStyle": "custom",
