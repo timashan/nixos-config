@@ -30,6 +30,7 @@
     "workbench.list.smoothScrolling": true,
     "editor.smoothScrolling": true,
     "terminal.integrated.smoothScrolling": true,
+    "terminal.integrated.fontFamily": "JetBrainsMono Nerd Font",
     "terminal.integrated.defaultProfile.linux": "zsh",
     "terminal.integrated.scrollback": 20000,
     "search.smartCase": true,
