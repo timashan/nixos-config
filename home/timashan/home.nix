@@ -208,6 +208,13 @@ in
     nix-direnv.enable = true;
   };
 
+  programs.zoxide = {
+    enable = true;
+    enableFishIntegration = false; # Caelestia's fish config is patched below.
+    enableZshIntegration = true;
+    options = [ "--cmd z" ];
+  };
+
   programs.ssh = {
     enable = true;
     settings = {

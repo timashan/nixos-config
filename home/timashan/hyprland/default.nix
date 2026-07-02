@@ -427,7 +427,9 @@ in
     "hypr/scheme" = cfgDir "${dots}/hypr/scheme";
     "hypr/variables.lua" = cfg "${dots}/hypr/variables.lua";
 
-    "fish/config.fish" = cfg "${dots}/fish/config.fish";
+    "fish/config.fish".text =
+      builtins.replaceStrings [ "zoxide init fish --cmd cd" ] [ "zoxide init fish --cmd z" ]
+        (builtins.readFile "${dots}/fish/config.fish");
     "fish/functions/fish_greeting.fish".text = ''
       function fish_greeting
           command -v fastfetch &> /dev/null && fastfetch
