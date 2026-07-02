@@ -198,6 +198,53 @@ in
     '';
   };
 
+  programs.tmux = {
+    enable = true;
+    clock24 = true;
+    escapeTime = 10;
+    historyLimit = 100000;
+    keyMode = "vi";
+    mouse = true;
+    prefix = "C-a";
+    sensibleOnTop = true;
+    terminal = "tmux-256color";
+
+    plugins = with pkgs.tmuxPlugins; [
+      sensible
+      yank
+      resurrect
+      continuum
+    ];
+
+    extraConfig = ''
+      set -g base-index 1
+      setw -g pane-base-index 1
+      set -g renumber-windows on
+      set -g focus-events on
+      set -g set-clipboard on
+      set -as terminal-overrides ',*:RGB'
+
+      bind C-a send-prefix
+      set -g prefix2 C-b
+      bind C-b send-prefix
+      bind r source-file ~/.config/tmux/tmux.conf \; display-message "tmux config reloaded"
+
+      bind | split-window -h -c "#{pane_current_path}"
+      bind c new-window -c "#{pane_current_path}"
+
+      bind -r H resize-pane -L 5
+      bind -r J resize-pane -D 5
+      bind -r K resize-pane -U 5
+
+      bind-key -T copy-mode-vi v send -X begin-selection
+      bind-key -T copy-mode-vi y send -X copy-pipe-and-cancel "wl-copy"
+
+      set -g @continuum-restore 'on'
+      set -g @continuum-save-interval '15'
+      set -g @resurrect-capture-pane-contents 'on'
+    '';
+  };
+
   programs.starship = {
     enable = true;
     enableZshIntegration = true;
@@ -258,6 +305,7 @@ in
     fzf
     ripgrep
     fd
+    wl-clipboard
     yazi
   ];
 }
