@@ -438,7 +438,7 @@ in
     "btop" = cfgDir "${dots}/btop";
     "micro" = cfgDir "${dots}/micro";
     "Thunar" = cfgDir "${dots}/thunar";
-    "starship.toml" = cfg "${dots}/starship.toml";
+    "starship.toml" = cfg ../starship.toml;
 
     "Code/User/settings.json" = cfg vscodeSettings;
     "Code/User/keybindings.json" = cfg "${dots}/vscode/keybindings.json";
