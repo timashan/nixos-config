@@ -107,8 +107,8 @@ in
   '';
 
   home.sessionVariables = {
-    EDITOR = "code --wait";
-    VISUAL = "code --wait";
+    EDITOR = "nvim";
+    VISUAL = "nvim";
     BROWSER = lib.getExe pkgs.firefox;
     ANDROID_HOME = "/home/${username}/Android/Sdk";
     ANDROID_SDK_ROOT = "/home/${username}/Android/Sdk";
@@ -187,6 +187,8 @@ in
     shellAliases = {
       ll = "ls -lah";
       gs = "git status";
+      vi = "nvim";
+      vim = "nvim";
       rebuild = "sudo nixos-rebuild switch --flake /etc/nixos#tuf-a15";
       test-rebuild = "sudo nixos-rebuild test --flake /etc/nixos#tuf-a15";
       codex-login = "codex login --device-auth";
@@ -221,7 +223,26 @@ in
     mutableExtensionsDir = true;
   };
 
+  home.activation.nvchadStarter = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    nvimDir="${config.home.homeDirectory}/.config/nvim"
+    initLua="$nvimDir/init.lua"
+
+    if [ -L "$initLua" ] && readlink "$initLua" | grep -q '/nix/store/'; then
+      $DRY_RUN_CMD rm -rf "$nvimDir"
+    fi
+
+    if [ ! -e "$initLua" ]; then
+      $DRY_RUN_CMD mkdir -p "$(dirname "$nvimDir")"
+      if [ -e "$nvimDir" ]; then
+        backup="$nvimDir.backup-before-nvchad-$(date +%Y%m%d%H%M%S)"
+        $DRY_RUN_CMD mv "$nvimDir" "$backup"
+      fi
+      $DRY_RUN_CMD ${pkgs.git}/bin/git clone https://github.com/NvChad/starter "$nvimDir" || true
+    fi
+  '';
+
   home.packages = with pkgs; [
+    neovim
     lazygit
     jq
     yq
