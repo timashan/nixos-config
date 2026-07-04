@@ -12,6 +12,10 @@
       ffmpeg-full
       yt-dlp
       obs-studio
+      moonlight-qt
+      karere
+      tor-browser
+      veracrypt
       gimp
       inkscape
       discord
