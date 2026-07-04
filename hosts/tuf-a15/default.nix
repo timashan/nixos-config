@@ -37,6 +37,18 @@
     shell = pkgs.zsh;
   };
 
+  users.users.private = {
+    isNormalUser = true;
+    description = "Private";
+    extraGroups = [
+      "networkmanager"
+      "audio"
+      "video"
+      "input"
+    ];
+    shell = pkgs.zsh;
+  };
+
   # Set this to the NixOS release used for the first install.
   system.stateVersion = "26.05";
 }

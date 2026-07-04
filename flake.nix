@@ -101,6 +101,7 @@
                 ;
             };
             home-manager.users.${username} = import ./home/timashan/home.nix;
+            home-manager.users.private = import ./home/private/home.nix;
           }
         ];
       };
