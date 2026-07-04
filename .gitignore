@@ -6,6 +6,12 @@ result-*
 *.bak
 *~
 
+# Local secrets
+secrets/
+
+# Local machine/user config
+local/
+
 # One-time Windows preflight diagnostic dumps
 nixos-preflight-windows/
 

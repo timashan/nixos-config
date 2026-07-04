@@ -23,6 +23,7 @@
   users.users.${username} = {
     isNormalUser = true;
     description = "Timashan";
+    hashedPasswordFile = "/etc/nixos/secrets/${username}.password.hash";
     extraGroups = [
       "wheel"
       "networkmanager"
@@ -40,6 +41,7 @@
   users.users.private = {
     isNormalUser = true;
     description = "Private";
+    hashedPasswordFile = "/etc/nixos/secrets/private.password.hash";
     extraGroups = [
       "networkmanager"
       "audio"

@@ -43,6 +43,10 @@ in
     recursive = true;
   };
 
+  home.file.".aws/config".source = config.lib.file.mkOutOfStoreSymlink "/etc/nixos/local/aws/config";
+  home.file.".aws/credentials".source =
+    config.lib.file.mkOutOfStoreSymlink "/etc/nixos/secrets/aws/credentials";
+
   programs.caelestia = {
     enable = true;
     package = patchedCaelestiaShell;
@@ -192,11 +196,15 @@ in
   programs.git = {
     enable = true;
     lfs.enable = true;
+    includes = [
+      { path = "/etc/nixos/local/gitconfig"; }
+    ];
     settings = {
       init.defaultBranch = "main";
       pull.rebase = false;
       push.autoSetupRemote = true;
       core.autocrlf = "input";
+      url."git@github.com:".insteadOf = "https://github.com/";
     };
   };
 
@@ -288,6 +296,12 @@ in
       "*" = {
         AddKeysToAgent = "yes";
       };
+    };
+    matchBlocks."github.com" = {
+      hostname = "github.com";
+      user = "git";
+      identityFile = "~/.ssh/id_ed25519";
+      identitiesOnly = true;
     };
   };
 
