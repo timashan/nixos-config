@@ -100,6 +100,26 @@ in
         );
   };
 
+  xdg.desktopEntries.zen-vault = {
+    name = "Zen Browser (Vault)";
+    genericName = "Private Web Browser";
+    comment = "Launch Zen with its profile stored inside the VeraCrypt vault";
+    exec = "zen-vault %U";
+    icon = "zen-browser";
+    categories = [
+      "Network"
+      "WebBrowser"
+      "Security"
+    ];
+    mimeType = [
+      "text/html"
+      "text/xml"
+      "application/xhtml+xml"
+      "x-scheme-handler/http"
+      "x-scheme-handler/https"
+    ];
+  };
+
   # KDE: System Settings > Keyboard > NumLock on startup = Turn on
   xdg.configFile."kcminputrc".text = ''
     [Keyboard]
@@ -296,6 +316,37 @@ in
   '';
 
   home.packages = with pkgs; [
+    (writeShellApplication {
+      name = "zen-vault";
+      runtimeInputs = [ coreutils ];
+      text = ''
+        vault=
+        for candidate in /run/media/veracrypt1 /tmp/veracrypt_mnt1; do
+          if mountpoint -q "$candidate"; then
+            vault="$candidate"
+            break
+          fi
+        done
+
+        if [ -z "$vault" ]; then
+          printf 'VeraCrypt vault is not mounted at /run/media/veracrypt1 or /tmp/veracrypt_mnt1\n' >&2
+          printf 'Mount your VeraCrypt container first, then run zen-vault again.\n' >&2
+          exit 1
+        fi
+
+        profile="$vault/zen-profile"
+        downloads="$vault/Downloads"
+
+        mkdir -p "$profile" "$downloads"
+        cat > "$profile/user.js" <<EOF
+        user_pref("browser.download.folderList", 2);
+        user_pref("browser.download.dir", "$downloads");
+        user_pref("browser.download.useDownloadDir", true);
+        EOF
+
+        exec zen-beta --new-instance --profile "$profile" "$@"
+      '';
+    })
     neovim
     lazygit
     jq
