@@ -16,6 +16,7 @@
     ../../modules/nixos/development.nix
     ../../modules/nixos/gaming.nix
     ../../modules/nixos/apps.nix
+    ../../modules/nixos/vaultwarden.nix
   ];
 
   networking.hostName = hostname;
