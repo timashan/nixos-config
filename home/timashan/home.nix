@@ -27,6 +27,7 @@ in
     codex-desktop-linux.homeManagerModules.default
     zen-browser.homeModules.beta
     caelestia-shell.homeManagerModules.default
+    ./browser.nix
     ./mimeapps.nix
     ./hyprland.nix
   ];
@@ -35,8 +36,6 @@ in
     enable = true;
     cliPackage = codexCli;
   };
-
-  programs.zen-browser.enable = true;
 
   home.file."Pictures/Wallpapers" = {
     source = ./wallpapers;
