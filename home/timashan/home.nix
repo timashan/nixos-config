@@ -132,7 +132,7 @@ in
   home.sessionVariables = {
     EDITOR = "nvim";
     VISUAL = "nvim";
-    BROWSER = lib.getExe pkgs.firefox;
+    BROWSER = "zen-beta";
     ANDROID_HOME = "/home/${username}/Android/Sdk";
     ANDROID_SDK_ROOT = "/home/${username}/Android/Sdk";
     XDG_MENU_PREFIX = "plasma-";

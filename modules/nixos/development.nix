@@ -33,7 +33,7 @@
     JAVA_HOME = "${pkgs.jdk21.home}";
     ANDROID_HOME = "/home/${username}/Android/Sdk";
     ANDROID_SDK_ROOT = "/home/${username}/Android/Sdk";
-    BROWSER = lib.getExe pkgs.firefox;
+    BROWSER = "zen-beta";
   };
 
   environment.systemPackages =
