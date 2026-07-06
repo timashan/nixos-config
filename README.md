@@ -53,3 +53,32 @@ cp /mnt/etc/nixos/hardware-configuration.nix ./hosts/tuf-a15/hardware-configurat
 Do not run install commands against a disk until you have decided which SSD will
 be erased or preserved.
 
+## Private backup recovery
+
+Private local files and secrets are backed up with Restic to the Google Drive
+repository:
+
+```text
+rclone:gdrive:nixos-backups
+```
+
+The Restic repository password is stored locally at:
+
+```text
+/etc/nixos/secrets/restic/password
+```
+
+Keep a second copy of that password in Bitwarden or an offline recovery note.
+The password file is included in the encrypted backup, but it cannot help with a
+fresh restore because Restic needs the password before it can decrypt anything.
+
+On a fresh machine, clone this repo, run the first rebuild to install
+`restic`/`rclone`, recreate `/etc/nixos/secrets/restic/password` from the saved
+copy, configure the `gdrive` rclone remote at
+`/etc/nixos/secrets/restic/rclone.conf`, then restore:
+
+```bash
+sudo restic-nixos-backups snapshots
+sudo restic-nixos-backups restore latest --target /
+sudo nixos-rebuild switch --flake /etc/nixos#tuf-a15
+```
