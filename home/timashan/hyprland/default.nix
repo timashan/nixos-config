@@ -358,6 +358,8 @@ let
         kwriteconfig6="${lib.getExe' pkgs.kdePackages.kconfig "kwriteconfig6"}"
         "$kwriteconfig6" --file kdeglobals --group General --key ColorScheme "$kdeColorScheme" >/dev/null 2>&1 || true
         "$kwriteconfig6" --file kdeglobals --group General --key ColorSchemeHash --delete >/dev/null 2>&1 || true
+        "$kwriteconfig6" --file kdeglobals --group General --key TerminalApplication foot >/dev/null 2>&1 || true
+        "$kwriteconfig6" --file kdeglobals --group General --key TerminalService foot.desktop >/dev/null 2>&1 || true
         "$kwriteconfig6" --file kdeglobals --group KDE --key LookAndFeelPackage "$kdeLookAndFeel" >/dev/null 2>&1 || true
         "$kwriteconfig6" --file kdeglobals --group KDE --key widgetStyle Breeze >/dev/null 2>&1 || true
         "$kwriteconfig6" --file kdeglobals --group Icons --key Theme "$iconTheme" >/dev/null 2>&1 || true
@@ -493,6 +495,7 @@ in
   home.sessionVariables = {
     GTK2_RC_FILES = lib.mkDefault "${home}/.gtkrc-2.0";
     TERMINAL = lib.mkDefault "foot";
+    KTERMINAL = lib.mkDefault "foot";
     XCURSOR_SIZE = lib.mkDefault "24";
     HYPRCURSOR_SIZE = lib.mkDefault "24";
     QT_QPA_PLATFORMTHEME = lib.mkForce "kde";
