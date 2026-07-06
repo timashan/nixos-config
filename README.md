@@ -82,3 +82,25 @@ sudo restic-nixos-backups snapshots
 sudo restic-nixos-backups restore latest --target /
 sudo nixos-rebuild switch --flake /etc/nixos#tuf-a15
 ```
+
+## Obsidian sync
+
+Obsidian is installed by the system configuration. The vault path is:
+
+```text
+/home/timashan/Documents/Obsidian
+```
+
+That directory is included in the encrypted Restic backup.
+
+For phone/laptop sync, use Syncthing with the Obsidian vault folder:
+
+1. Rebuild the system to enable the Syncthing service.
+2. Open Syncthing on the laptop at <http://127.0.0.1:8384>.
+3. Install Syncthing-Fork on Android.
+4. Pair the phone and laptop.
+5. Share `/home/timashan/Documents/Obsidian` from the laptop to the phone.
+6. Open the synced phone folder as an Obsidian vault.
+
+Syncthing handles live file sync. Restic handles encrypted, versioned backup to
+Google Drive.

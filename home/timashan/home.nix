@@ -42,6 +42,22 @@ in
     recursive = true;
   };
 
+  home.activation.obsidianVault = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        vault="${config.home.homeDirectory}/Documents/Obsidian"
+        ignore="$vault/.stignore"
+
+        $DRY_RUN_CMD mkdir -p "$vault"
+        if [ ! -e "$ignore" ]; then
+          $DRY_RUN_CMD tee "$ignore" >/dev/null <<'EOF'
+    .obsidian/workspace.json
+    .obsidian/workspace-mobile.json
+    .obsidian/workspace-*.json
+    .obsidian/cache/
+    .trash/
+    EOF
+        fi
+  '';
+
   home.file.".aws/config".source = config.lib.file.mkOutOfStoreSymlink "/etc/nixos/local/aws/config";
   home.file.".aws/credentials".source =
     config.lib.file.mkOutOfStoreSymlink "/etc/nixos/secrets/aws/credentials";

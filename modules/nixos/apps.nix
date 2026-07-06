@@ -1,6 +1,28 @@
-{ lib, pkgs, ... }:
+{
+  lib,
+  pkgs,
+  username,
+  ...
+}:
 
 {
+  services.syncthing = {
+    enable = true;
+    user = username;
+    dataDir = "/home/${username}";
+    configDir = "/home/${username}/.config/syncthing";
+    openDefaultPorts = true;
+
+    # Keep devices and shared folders editable from Syncthing's web UI.
+    overrideDevices = false;
+    overrideFolders = false;
+  };
+
+  systemd.tmpfiles.rules = [
+    "d /home/${username}/Documents 0755 ${username} users -"
+    "d /home/${username}/Documents/Obsidian 0750 ${username} users -"
+  ];
+
   environment.systemPackages =
     (with pkgs; [
       chromium
@@ -21,6 +43,9 @@
       signal-desktop
       telegram-desktop
       bitwarden-desktop
+      obsidian
+      syncthing
+      syncthingtray
       zip
       unzip
       p7zip
