@@ -69,6 +69,8 @@
       flutter
       android-tools
       jdk21
+      devenv
+      devbox
       direnv
       nix-direnv
       xdg-utils
