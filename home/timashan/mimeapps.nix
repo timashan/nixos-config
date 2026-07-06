@@ -52,12 +52,13 @@ let
     "application/json" = [ "micro.desktop" ];
     "application/x-shellscript" = [ "micro.desktop" ];
     "inode/directory" = [ "org.kde.dolphin.desktop" ];
-    "text/markdown" = [ "okularApplication_md.desktop" ];
+    "text/markdown" = [ "micro.desktop" ];
     "text/plain" = [ "micro.desktop" ];
     "text/x-csrc" = [ "micro.desktop" ];
     "text/x-c++src" = [ "micro.desktop" ];
     "text/x-python" = [ "micro.desktop" ];
     "text/x-shellscript" = [ "micro.desktop" ];
+    "text/x-markdown" = [ "micro.desktop" ];
     "x-scheme-handler/http" = [ "zen-beta.desktop" ];
     "x-scheme-handler/https" = [ "zen-beta.desktop" ];
     "x-scheme-handler/chrome" = [ "zen-beta.desktop" ];
