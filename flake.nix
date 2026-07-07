@@ -19,6 +19,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    claude-desktop = {
+      url = "github:aaddrick/claude-desktop-debian";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     zen-browser = {
       url = "github:0xc000022070/zen-browser-flake";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -43,6 +48,7 @@
       home-manager,
       codex-desktop-linux,
       codex-cli-nix,
+      claude-desktop,
       zen-browser,
       caelestia-shell,
       caelestia-dots,
@@ -79,7 +85,12 @@
       nixosConfigurations.${hostname} = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = {
-          inherit hostname username codexCli;
+          inherit
+            hostname
+            username
+            codexCli
+            claude-desktop
+            ;
         };
 
         modules = [
