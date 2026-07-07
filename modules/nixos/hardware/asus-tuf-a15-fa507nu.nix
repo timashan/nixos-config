@@ -10,6 +10,9 @@
   # Windows device paths suggest these Linux PRIME bus IDs, but confirm after
   # install with:
   #   lspci | grep -E "VGA|3D|Display"
+  boot.kernelPackages = pkgs.linuxPackages_7_0;
+  boot.kernelModules = [ "asus-armoury" ];
+
   services.xserver.videoDrivers = [ "nvidia" ];
 
   boot.blacklistedKernelModules = [ "nouveau" ];
@@ -35,6 +38,7 @@
     # Keeps suspend/resume and offload power behavior saner on modern laptops.
     powerManagement.enable = true;
     powerManagement.finegrained = true;
+    dynamicBoost.enable = true;
 
     prime = {
       offload.enable = true;
@@ -49,6 +53,12 @@
   services.asusd = {
     enable = true;
   };
+
+  # asusd's upstream unit has ReadWritePaths=/etc/asusd/, and systemd rejects
+  # the service before ExecStart when that directory is missing.
+  systemd.tmpfiles.rules = [
+    "d /etc/asusd 0755 root root -"
+  ];
 
   # supergfxctl is useful on ASUS hybrid laptops for Integrated, Hybrid, and
   # dGPU modes when the firmware supports them.

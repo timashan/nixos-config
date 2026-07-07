@@ -59,6 +59,16 @@
   security.rtkit.enable = true;
   security.sudo.wheelNeedsPassword = true;
 
+  # Keep setuid/setcap wrappers ahead of the plain package binaries in shells
+  # spawned outside the normal login profile setup, such as editor terminals.
+  environment.localBinInPath = true;
+  environment.extraInit = ''
+    case ":$PATH:" in
+      *:/run/wrappers/bin:*) ;;
+      *) export PATH="/run/wrappers/bin:$PATH" ;;
+    esac
+  '';
+
   services.dbus.enable = true;
   services.fwupd.enable = true;
   services.fstrim.enable = true;
