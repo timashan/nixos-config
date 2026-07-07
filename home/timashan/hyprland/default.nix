@@ -430,8 +430,17 @@ in
     "hypr/variables.lua" = cfg "${dots}/hypr/variables.lua";
 
     "fish/config.fish".text =
-      builtins.replaceStrings [ "zoxide init fish --cmd cd" ] [ "zoxide init fish --cmd z" ]
-        (builtins.readFile "${dots}/fish/config.fish");
+      (builtins.replaceStrings [ "zoxide init fish --cmd cd" ] [ "zoxide init fish --cmd z" ] (
+        builtins.readFile "${dots}/fish/config.fish"
+      ))
+      + ''
+
+        if status is-interactive
+            set -gx FZF_CTRL_T_OPTS "--walker-skip .git,node_modules,target --preview='bat -n --color=always --line-range :200 {}' --preview-window=right:60%:wrap --bind='ctrl-/:toggle-preview'"
+            set -gx FZF_EXPANSION_OPTS "--preview='bat -n --color=always --line-range :200 {}' --preview-window=right:60%:wrap --bind='ctrl-/:toggle-preview'"
+            command -q fzf; and fzf --fish | source
+        end
+      '';
     "fish/functions/fish_greeting.fish".text = ''
       function fish_greeting
           command -v fastfetch &> /dev/null && fastfetch
