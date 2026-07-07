@@ -83,6 +83,7 @@ in
       jdk21
       devenv
       devbox
+      just
       direnv
       nix-direnv
       xdg-utils

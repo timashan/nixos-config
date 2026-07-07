@@ -16,6 +16,7 @@
       "/etc/nixos/secrets"
       "/var/backup/vaultwarden"
       "/home/${username}/Documents/Obsidian"
+      "/home/${username}/.justfile"
     ];
 
     dynamicFilesFrom = ''
@@ -34,6 +35,9 @@
               -o -name '.env.*' \
               -o -name '*.tfvars' \
               -o -name '*.tfvars.json' \
+              -o -iname 'justfile' \
+              -o -name '.justfile' \
+              -o -name '*.just' \
             \) \
             ! -name '.env.example' \
             ! -name '.env.sample' \
