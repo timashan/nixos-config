@@ -6,6 +6,8 @@
 }:
 
 {
+  environment.sessionVariables.NIXOS_OZONE_WL = "1";
+
   services.syncthing = {
     enable = true;
     user = username;
