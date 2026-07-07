@@ -33,19 +33,16 @@ in
   xdg.portal = {
     enable = true;
     extraPortals = [
+      pkgs.xdg-desktop-portal-hyprland
       pkgs.kdePackages.xdg-desktop-portal-kde
-      pkgs.xdg-desktop-portal-gtk
     ];
     config = {
-      common.default = [ "gtk" ];
+      common.default = [ "kde" ];
       Hyprland.default = [
         "hyprland"
-        "gtk"
-      ];
-      KDE.default = [
         "kde"
-        "gtk"
       ];
+      KDE.default = [ "kde" ];
     };
   };
 
