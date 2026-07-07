@@ -3,9 +3,21 @@
   pkgs,
   username,
   codexCli,
+  claude-desktop,
   ...
 }:
 
+let
+  system = pkgs.stdenv.hostPlatform.system;
+  cursorCli = pkgs.symlinkJoin {
+    name = "cursor-cli-with-agent-alias";
+    paths = [ pkgs.cursor-cli ];
+    postBuild = ''
+      ln -s "$out/bin/cursor-agent" "$out/bin/agent"
+    '';
+  };
+  claudeDesktop = claude-desktop.packages.${system}.claude-desktop-fhs;
+in
 {
   programs.java = {
     enable = true;
@@ -77,6 +89,9 @@
     ])
     ++ lib.optional (pkgs ? vscode) pkgs.vscode
     ++ lib.optional (pkgs ? code-cursor) pkgs.code-cursor
+    ++ lib.optional (pkgs ? cursor-cli) cursorCli
+    ++ lib.optional (pkgs ? gemini-cli) pkgs.gemini-cli
     ++ lib.optional (pkgs ? android-studio) pkgs.android-studio
+    ++ [ claudeDesktop ]
     ++ [ codexCli ];
 }
