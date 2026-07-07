@@ -241,6 +241,11 @@ in
     '';
   };
 
+  programs.fzf = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
   programs.tmux = {
     enable = true;
     clock24 = true;
