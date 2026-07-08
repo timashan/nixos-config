@@ -112,6 +112,7 @@
     powertop
     btop
     htop
+    gum
     jq
     ripgrep
     fd
