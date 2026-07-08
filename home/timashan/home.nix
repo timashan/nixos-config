@@ -154,6 +154,10 @@ in
     XDG_MENU_PREFIX = "plasma-";
   };
 
+  home.sessionPath = [
+    "${config.home.homeDirectory}/.config/emacs/bin"
+  ];
+
   # KDE Wayland: Electron is more reliable on X11 (codex-desktop-linux docs).
   home.file.".config/codex-desktop/electron-flags.conf" = {
     force = true;
@@ -331,6 +335,29 @@ in
     mutableExtensionsDir = true;
   };
 
+  programs.emacs = {
+    enable = true;
+    package = pkgs.emacs-pgtk;
+  };
+
+  home.activation.doomEmacsStarter = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    emacsDir="${config.home.homeDirectory}/.config/emacs"
+    doomBin="$emacsDir/bin/doom"
+
+    if [ ! -x "$doomBin" ]; then
+      $DRY_RUN_CMD mkdir -p "$(dirname "$emacsDir")"
+      if [ -e "$emacsDir" ]; then
+        backup="$emacsDir.backup-before-doom-$(date +%Y%m%d%H%M%S)"
+        $DRY_RUN_CMD mv "$emacsDir" "$backup"
+      fi
+      $DRY_RUN_CMD ${pkgs.git}/bin/git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/doomemacs/doomemacs "$emacsDir" || true
+    fi
+
+    if [ -d "$emacsDir/.git" ] && [ ! -d "$emacsDir/sources/doom+/modules" ]; then
+      $DRY_RUN_CMD ${pkgs.git}/bin/git -C "$emacsDir" submodule update --init --recursive --depth 1 || true
+    fi
+  '';
+
   home.activation.nvchadStarter = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     nvimDir="${config.home.homeDirectory}/.config/nvim"
     initLua="$nvimDir/init.lua"
@@ -379,6 +406,12 @@ in
         EOF
 
         exec zen-beta --new-instance --profile "$profile" "$@"
+      '';
+    })
+    (writeShellApplication {
+      name = "doom";
+      text = ''
+        exec "$HOME/.config/emacs/bin/doom" "$@"
       '';
     })
     neovim
