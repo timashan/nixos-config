@@ -8,6 +8,15 @@
 {
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
+  programs.thunderbird = {
+    enable = true;
+    preferences."mail.shell.checkDefaultClient" = false;
+    policies.ExtensionSettings."google-chat-tab@eternaltyro" = {
+      install_url = "https://addons.thunderbird.net/thunderbird/downloads/latest/google-chat-tab/latest.xpi";
+      installation_mode = "force_installed";
+    };
+  };
+
   services.syncthing = {
     enable = true;
     user = username;
