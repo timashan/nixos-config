@@ -3,6 +3,7 @@
   lib,
   pkgs,
   username,
+  hostname,
   codex-desktop-linux,
   codexCli,
   zen-browser,
@@ -24,6 +25,9 @@ let
 in
 {
   imports = [
+    ../../modules/home-manager/base.nix
+    ../../modules/home-manager/tmux.nix
+    ../../modules/home-manager/zsh.nix
     codex-desktop-linux.homeManagerModules.default
     zen-browser.homeModules.beta
     caelestia-shell.homeManagerModules.default
@@ -89,9 +93,6 @@ in
 
   home.username = username;
   home.homeDirectory = "/home/${username}";
-  home.stateVersion = "26.05";
-
-  programs.home-manager.enable = true;
 
   # force=true: HM must overwrite writable copies from the previous activation.
   # activation: replace read-only store symlinks so Caelestia can auto-save at runtime.
@@ -228,21 +229,15 @@ in
   };
 
   programs.zsh = {
-    enable = true;
-    autosuggestion.enable = true;
-    syntaxHighlighting.enable = true;
     shellAliases = {
       ll = "ls -lah";
       gs = "git status";
       vi = "nvim";
       vim = "nvim";
-      rebuild = "sudo nixos-rebuild switch --flake /etc/nixos#tuf-a15";
-      test-rebuild = "sudo nixos-rebuild test --flake /etc/nixos#tuf-a15";
+      rebuild = "sudo nixos-rebuild switch --flake /etc/nixos#${hostname}";
+      test-rebuild = "sudo nixos-rebuild test --flake /etc/nixos#${hostname}";
       codex-login = "codex login --device-auth";
     };
-    initContent = ''
-      bindkey -e
-    '';
   };
 
   programs.fzf = {
@@ -251,15 +246,8 @@ in
   };
 
   programs.tmux = {
-    enable = true;
-    clock24 = true;
     escapeTime = 10;
     historyLimit = 100000;
-    keyMode = "vi";
-    mouse = true;
-    prefix = "C-a";
-    sensibleOnTop = true;
-    terminal = "tmux-256color";
 
     plugins = with pkgs.tmuxPlugins; [
       sensible

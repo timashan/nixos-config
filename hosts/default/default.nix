@@ -1,5 +1,4 @@
 {
-  config,
   pkgs,
   username,
   hostname,
@@ -10,22 +9,16 @@
   imports = [
     ./hardware-configuration.nix
     ../../modules/nixos/base.nix
-    ../../modules/nixos/hardware/laptop.nix
-    ../../modules/nixos/hardware/asus-tuf-a15-fa507nu.nix
     ../../modules/nixos/desktop-plasma.nix
-    ../../modules/nixos/desktop-hyprland.nix
     ../../modules/nixos/development.nix
-    ../../modules/nixos/gaming.nix
     ../../modules/nixos/apps.nix
-    ../../modules/nixos/vaultwarden.nix
-    ../../modules/nixos/backups.nix
   ];
 
   networking.hostName = hostname;
 
   users.users.${username} = {
     isNormalUser = true;
-    description = "Timashan";
+    description = "Admin";
     hashedPasswordFile = "/etc/nixos/secrets/${username}.password.hash";
     extraGroups = [
       "wheel"
@@ -54,6 +47,5 @@
     shell = pkgs.zsh;
   };
 
-  # Set this to the NixOS release used for the first install.
   system.stateVersion = "26.05";
 }

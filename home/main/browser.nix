@@ -1,4 +1,4 @@
-{ ... }:
+{ config, ... }:
 
 let
   mkAmoExtension = slug: {
@@ -7,7 +7,7 @@ let
   };
 in
 {
-  home.file."/home/timashan/.config/zen/profiles.ini".force = true;
+  home.file."${config.home.homeDirectory}/.config/zen/profiles.ini".force = true;
 
   programs.zen-browser = {
     enable = true;
