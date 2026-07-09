@@ -55,9 +55,13 @@
       ...
     }:
     let
+      localSettings =
+        if builtins.pathExists ./local/settings.nix then import ./local/settings.nix else { };
       system = "x86_64-linux";
-      hostname = "tuf-a15";
-      username = "timashan";
+      hostname = localSettings.hostname or "default";
+      host = localSettings.host or hostname;
+      hostPath = ./hosts + "/${host}";
+      username = localSettings.username or "admin";
       pkgs = nixpkgs.legacyPackages.${system};
       codexCli = codex-cli-nix.packages.${system}.default;
     in
@@ -94,7 +98,7 @@
         };
 
         modules = [
-          ./hosts/tuf-a15
+          hostPath
 
           home-manager.nixosModules.home-manager
           {
@@ -111,7 +115,7 @@
                 caelestia-dots
                 ;
             };
-            home-manager.users.${username} = import ./home/timashan/home.nix;
+            home-manager.users.${username} = import ./home/main/home.nix;
             home-manager.users.private = import ./home/private/home.nix;
           }
         ];

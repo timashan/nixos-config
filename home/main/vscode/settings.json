@@ -1,0 +1,112 @@
+{
+    "editor.renderWhitespace": "trailing",
+    "editor.multiCursorModifier": "ctrlCmd",
+    "editor.cursorSmoothCaretAnimation": "on",
+    "editor.fontLigatures": true,
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": "active",
+    "editor.linkedEditing": true,
+    "editor.rulers": [120],
+    "editor.stickyScroll.enabled": true,
+    "prettier.tabWidth": 4,
+    "editor.minimap.autohide": "mouseover",
+    "files.autoSave": "onFocusChange",
+    "files.autoSaveDelay": 1000,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "files.trimTrailingWhitespace": true,
+    "security.workspace.trust.startupPrompt": "always",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "prettier.printWidth": 120,
+    "prettier.arrowParens": "avoid",
+    "window.autoDetectColorScheme": true,
+    "window.commandCenter": true,
+    "window.menuBarVisibility": "visible",
+    "window.titleBarStyle": "custom",
+    "workbench.enableExperiments": false,
+    "workbench.settings.editor": "json",
+    "diffEditor.hideUnchangedRegions.enabled": true,
+    "workbench.list.smoothScrolling": true,
+    "editor.smoothScrolling": true,
+    "terminal.integrated.smoothScrolling": true,
+    "terminal.integrated.fontFamily": "JetBrainsMono Nerd Font",
+    "terminal.integrated.defaultProfile.linux": "zsh",
+    "terminal.integrated.scrollback": 20000,
+    "search.smartCase": true,
+    "search.useGlobalIgnoreFiles": true,
+    "search.useIgnoreFiles": true,
+    "telemetry.telemetryLevel": "off",
+    "update.mode": "none",
+    "javascript.preferences.importModuleSpecifierEnding": "minimal",
+    "typescript.preferences.importModuleSpecifierEnding": "minimal",
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+    },
+    "codeium.enableCodeLens": false,
+    "typescript.preferences.preferTypeOnlyAutoImports": true,
+    "editor.suggestSelection": "recentlyUsedByPrefix",
+    "workbench.iconTheme": "catppuccin-mocha",
+    "git.enableSmartCommit": true,
+    "codeium.enableConfig": {
+        "*": true,
+        "fish": true,
+        "qml": true
+    },
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[c]": {
+        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+    },
+    "[cpp]": {
+        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+    },
+    "[go]": {
+        "editor.defaultFormatter": "golang.go"
+    },
+    "go.formatTool": "goimports",
+    "[rust]": {
+        "editor.defaultFormatter": "rust-lang.rust-analyzer"
+    },
+    "rust-analyzer.check.command": "clippy",
+    "[r]": {
+        "editor.defaultFormatter": "REditorSupport.r"
+    },
+    "r.lsp.path": "R",
+    "r.rterm.linux": "R",
+    "[terraform]": {
+        "editor.defaultFormatter": "hashicorp.terraform"
+    },
+    "[terraform-vars]": {
+        "editor.defaultFormatter": "hashicorp.terraform"
+    },
+    "terraform.languageServer.path": "terraform-ls",
+    "[nix]": {
+        "editor.defaultFormatter": "jnoortheen.nix-ide"
+    },
+    "nix.formatterPath": "nixfmt",
+    "[yaml]": {
+        "editor.defaultFormatter": "redhat.vscode-yaml"
+    },
+    "doxdocgen.generic.boolReturnsTrueFalse": false,
+    "terminal.integrated.enableMultiLinePasteWarning": "never",
+    "qt-qml.qmlls.additionalImportPaths": ["/usr/lib/qt6/qml"],
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff"
+    },
+    "ruff.lineLength": 120,
+    "python.languageServer": "Pylance",
+    "editor.inlayHints.enabled": "off",
+    "qt-qml.qmlls.customExePath": "/usr/bin/qmlls6",
+    "qt-qml.doNotAskForQmllsDownload": true
+}
