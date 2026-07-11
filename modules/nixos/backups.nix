@@ -12,6 +12,7 @@
     };
 
     paths = [
+      "/etc/nixos/hosts"
       "/etc/nixos/local"
       "/etc/nixos/secrets"
       "/var/backup/vaultwarden"

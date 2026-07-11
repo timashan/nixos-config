@@ -24,10 +24,16 @@ The configuration is intentionally modular:
 ├── hosts/
 │   ├── default/
 │   │   ├── default.nix
-│   │   └── hardware-configuration.nix
+│   │   ├── hardware-configuration.nix
+│   │   └── users.nix
 │   └── tuf-a15/
 │       ├── default.nix
-│       └── hardware-configuration.nix
+│       ├── hardware-configuration.nix
+│       └── users.nix
+├── local/
+│   ├── bookmarks.html.example
+│   ├── gitconfig.example
+│   └── settings.nix.example
 ├── modules/
 │   ├── home-manager/
 │   │   ├── base.nix
@@ -43,11 +49,16 @@ The configuration is intentionally modular:
 │           ├── asus-laptop.nix
 │           ├── laptop.nix
 │           └── nvidia-hybrid.nix
-└── home/
-    ├── main/
-    │   └── home.nix
-    └── private/
-        └── home.nix
+├── home/
+│   ├── main/
+│   │   └── home.nix
+│   └── private/
+│       └── home.nix
+├── scripts/
+│   ├── check-local
+│   └── new-host
+└── secrets/
+    └── README.md
 ```
 
 ## Important install note
@@ -63,6 +74,59 @@ cp /mnt/etc/nixos/hardware-configuration.nix ./hosts/tuf-a15/hardware-configurat
 
 Do not run install commands against a disk until you have decided which SSD will
 be erased or preserved.
+
+## Quick local setup
+
+For a new machine, the helper script creates a host folder from
+`hosts/default`, sets the local host/user identity, and points
+`/etc/nixos/local/settings.nix` at it:
+
+```bash
+sudo ./scripts/new-host <host> <user>
+```
+
+Then generate the real hardware config during install:
+
+```bash
+sudo nixos-generate-config --root /mnt
+sudo cp /mnt/etc/nixos/hardware-configuration.nix /etc/nixos/hosts/<host>/hardware-configuration.nix
+```
+
+When the host is ready, track it in git:
+
+```bash
+git add hosts/<host>
+```
+
+Create the remaining local files/secrets the modules expect. Tracked examples
+live in `local/*.example` and `secrets/README.md`.
+
+```bash
+cp /etc/nixos/local/gitconfig.example /etc/nixos/local/gitconfig
+mkpasswd -m sha-512 | sudo tee /etc/nixos/secrets/<user>.password.hash >/dev/null
+```
+
+Edit `/etc/nixos/local/gitconfig` after copying it. Use either your normal
+email address or GitHub's noreply format:
+`your-github-username@users.noreply.github.com`.
+
+Bookmarks are optional. If you want Zen to import bookmarks on first run, copy
+`local/bookmarks.html.example` to `local/bookmarks.html` and edit it.
+
+AWS files are optional. If this machine needs AWS CLI access, run
+`aws configure`; Home Manager links `~/.aws/config` to
+`/etc/nixos/local/aws/config` and `~/.aws/credentials` to
+`/etc/nixos/secrets/aws/credentials`.
+
+If you are setting up by hand instead of using `scripts/new-host`, start by
+copying `local/settings.nix.example` to `local/settings.nix` and setting
+`host`.
+
+Check the local machine state before rebuilding:
+
+```bash
+./scripts/check-local
+```
 
 ## Local settings
 
@@ -85,7 +149,7 @@ nix flake update localConfig
 ```
 
 `host` selects the folder under `hosts/`. If it is omitted, it defaults to the
-hostname.
+hostname. `username` is passed into the selected host's `users.nix`.
 
 The default host is a hardware-neutral fallback/template. Its hardware config
 expects the root filesystem label `nixos` and EFI partition label `BOOT`; for
@@ -100,7 +164,8 @@ Create one host directory per machine:
 ```text
 hosts/<host>/
 ├── default.nix
-└── hardware-configuration.nix
+├── hardware-configuration.nix
+└── users.nix
 ```
 
 Copy an existing `default.nix` or start from `hosts/default/default.nix`, then

@@ -7,10 +7,12 @@ result-*
 *~
 
 # Local secrets
-secrets/
+secrets/*
+!secrets/README.md
 
 # Local machine/user config
-local/
+local/*
+!local/*.example
 
 # One-time Windows preflight diagnostic dumps
 nixos-preflight-windows/
