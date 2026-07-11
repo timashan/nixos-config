@@ -202,6 +202,19 @@
         "type": "github"
       }
     },
+    "localConfig": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1783577694,
+        "narHash": "sha256-CQqNp5k1dKrYAHiAQBaeAbnNWXZd1QARJmNl8umWic0=",
+        "path": "/etc/nixos/local/settings.nix",
+        "type": "path"
+      },
+      "original": {
+        "path": "/etc/nixos/local/settings.nix",
+        "type": "path"
+      }
+    },
     "m3shapes": {
       "flake": false,
       "locked": {
@@ -279,6 +292,7 @@
         "codex-cli-nix": "codex-cli-nix",
         "codex-desktop-linux": "codex-desktop-linux",
         "home-manager": "home-manager",
+        "localConfig": "localConfig",
         "nixpkgs": "nixpkgs",
         "zen-browser": "zen-browser"
       }

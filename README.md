@@ -40,8 +40,9 @@ The configuration is intentionally modular:
 │       ├── development.nix
 │       ├── gaming.nix
 │       └── hardware/
-│           ├── asus-tuf-a15-fa507nu.nix
-│           └── laptop.nix
+│           ├── asus-laptop.nix
+│           ├── laptop.nix
+│           └── nvidia-hybrid.nix
 └── home/
     ├── main/
     │   └── home.nix
@@ -65,8 +66,8 @@ be erased or preserved.
 
 ## Local settings
 
-Machine-local identity is read from `/etc/nixos/local/settings.nix` when it
-exists:
+Machine-local identity is read from `/etc/nixos/local/settings.nix` through the
+`localConfig` flake input:
 
 ```nix
 {
@@ -76,23 +77,15 @@ exists:
 }
 ```
 
-If that file is missing, the flake defaults to:
+The `local/` directory is gitignored, so this file is local to each machine.
+Because it is an explicit path input, refresh the lock after editing it:
 
-```nix
-{
-  hostname = "default";
-  username = "admin";
-}
+```bash
+nix flake update localConfig
 ```
 
-Most of the `local/` directory is gitignored, but `local/settings.nix` is kept
-visible to the flake so normal `nixos-rebuild --flake /etc/nixos#...` commands
-can select the right host and user. Edit or remove that file on a fresh machine
-when you want the `admin` fallback.
-
 `host` selects the folder under `hosts/`. If it is omitted, it defaults to the
-hostname. When `local/settings.nix` is missing entirely, the flake uses
-`hosts/default`.
+hostname.
 
 The default host is a hardware-neutral fallback/template. Its hardware config
 expects the root filesystem label `nixos` and EFI partition label `BOOT`; for

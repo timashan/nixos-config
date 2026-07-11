@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  username,
   hostname,
   codex-desktop-linux,
   codexCli,
@@ -77,7 +76,7 @@ in
         audio = [ "pavucontrol" ];
         explorer = [ "dolphin" ];
       };
-      paths.wallpaperDir = "/home/${username}/Pictures/Wallpapers";
+      paths.wallpaperDir = "${config.home.homeDirectory}/Pictures/Wallpapers";
       services.smartScheme = true;
       appearance.transparency.enabled = false;
     };
@@ -90,9 +89,6 @@ in
       };
     };
   };
-
-  home.username = username;
-  home.homeDirectory = "/home/${username}";
 
   # force=true: HM must overwrite writable copies from the previous activation.
   # activation: replace read-only store symlinks so Caelestia can auto-save at runtime.
@@ -150,8 +146,8 @@ in
     EDITOR = "nvim";
     VISUAL = "nvim";
     BROWSER = "zen-beta";
-    ANDROID_HOME = "/home/${username}/Android/Sdk";
-    ANDROID_SDK_ROOT = "/home/${username}/Android/Sdk";
+    ANDROID_HOME = "${config.home.homeDirectory}/Android/Sdk";
+    ANDROID_SDK_ROOT = "${config.home.homeDirectory}/Android/Sdk";
     XDG_MENU_PREFIX = "plasma-";
   };
 

@@ -6,13 +6,6 @@
 }:
 
 {
-  # This FA507NU is hybrid graphics: AMD Radeon iGPU plus RTX 4050 Laptop dGPU.
-  # Windows device paths suggest these Linux PRIME bus IDs, but confirm after
-  # install with:
-  #   lspci | grep -E "VGA|3D|Display"
-  boot.kernelPackages = pkgs.linuxPackages_7_0;
-  boot.kernelModules = [ "asus-armoury" ];
-
   services.xserver.videoDrivers = [ "nvidia" ];
 
   boot.blacklistedKernelModules = [ "nouveau" ];
@@ -29,8 +22,6 @@
 
   hardware.nvidia = {
     modesetting.enable = true;
-
-    # The RTX 4050 supports NVIDIA's open kernel module.
     open = true;
     package = config.boot.kernelPackages.nvidiaPackages.stable;
     nvidiaSettings = true;
@@ -43,31 +34,11 @@
     prime = {
       offload.enable = true;
       offload.enableOffloadCmd = true;
-
-      # Update these if Linux lspci reports different bus numbers.
-      amdgpuBusId = "PCI:4:0:0";
-      nvidiaBusId = "PCI:9:0:0";
     };
   };
 
-  services.asusd = {
-    enable = true;
-  };
-
-  # asusd's upstream unit has ReadWritePaths=/etc/asusd/, and systemd rejects
-  # the service before ExecStart when that directory is missing.
-  systemd.tmpfiles.rules = [
-    "d /etc/asusd 0755 root root -"
-  ];
-
-  # supergfxctl is useful on ASUS hybrid laptops for Integrated, Hybrid, and
-  # dGPU modes when the firmware supports them.
-  services.supergfxd.enable = true;
-
   environment.systemPackages =
     (with pkgs; [
-      asusctl
-      supergfxctl
       vulkan-tools
       mesa-demos
       radeontop
