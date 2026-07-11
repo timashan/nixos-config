@@ -16,6 +16,12 @@ Detected from Windows preflight:
 - Display: AUO B156HAN15.H internal panel, Acer EK271 P6 external display seen
 - Storage: 512 GB Micron NVMe GPT disk with Windows, 1 TB Lexar NVMe MBR disk
 
+## NixOS + Hyprland + Caelestia
+
+| Home | Tiles | Themes |
+| --- | --- | --- |
+| ![Home preview](previews/os-home.png) | ![Tiles preview](previews/os-tiles.png) | ![Themes preview](previews/os-themes.png) |
+
 The configuration is intentionally modular:
 
 ```text
