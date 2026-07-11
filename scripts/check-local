@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="$(cd -- "$script_dir/.." && pwd)"
+
+errors=0
+warnings=0
+
+error() {
+  printf 'ERROR: %s\n' "$*" >&2
+  errors=$((errors + 1))
+}
+
+warn() {
+  printf 'WARN:  %s\n' "$*" >&2
+  warnings=$((warnings + 1))
+}
+
+ok() {
+  printf 'OK:    %s\n' "$*"
+}
+
+require_file() {
+  local path="$1"
+  local label="$2"
+  if [[ -f $path ]]; then
+    ok "$label exists"
+  else
+    error "$label is missing: $path"
+  fi
+}
+
+settings_file="$repo_root/local/settings.nix"
+require_file "$settings_file" "local settings"
+
+host="default"
+username="admin"
+if [[ -f $settings_file ]]; then
+  if command -v nix >/dev/null 2>&1; then
+    if detected_host="$(nix eval --impure --raw --expr "(import $settings_file).host or \"default\"" 2>/dev/null)"; then
+      host="$detected_host"
+    else
+      error "could not evaluate $settings_file"
+    fi
+    if detected_username="$(nix eval --impure --raw --expr "(import $settings_file).username or \"admin\"" 2>/dev/null)"; then
+      username="$detected_username"
+    fi
+  else
+    detected_host="$(sed -n 's/^[[:space:]]*host[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$settings_file" | head -n1)"
+    host="${detected_host:-default}"
+    detected_username="$(sed -n 's/^[[:space:]]*username[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$settings_file" | head -n1)"
+    username="${detected_username:-admin}"
+    warn "nix command not found; parsed host with sed"
+  fi
+fi
+
+host_dir="$repo_root/hosts/$host"
+if [[ -d $host_dir ]]; then
+  ok "selected host exists: hosts/$host"
+else
+  error "selected host does not exist: $host_dir"
+fi
+
+for file in default.nix users.nix hardware-configuration.nix; do
+  [[ -f "$host_dir/$file" ]] && ok "hosts/$host/$file exists" || error "missing hosts/$host/$file"
+done
+
+if [[ -d "$repo_root/.git" && $host != "default" ]]; then
+  if git -C "$repo_root" check-ignore -q "hosts/$host"; then
+    warn "hosts/$host is ignored by git; hosts are expected to be tracked"
+  elif git -C "$repo_root" ls-files --error-unmatch "hosts/$host/default.nix" >/dev/null 2>&1; then
+    ok "hosts/$host is tracked by git"
+  else
+    warn "hosts/$host is not tracked yet; git add it before committing"
+  fi
+fi
+
+if [[ -f "$host_dir/users.nix" ]]; then
+  while IFS= read -r secret_path; do
+    [[ -n $secret_path ]] || continue
+    if [[ -n $username ]]; then
+      secret_path="${secret_path//\$\{username\}/$username}"
+    fi
+    if [[ -f $secret_path ]]; then
+      ok "password hash exists: $secret_path"
+    else
+      error "password hash is missing: $secret_path"
+    fi
+  done < <(sed -n '/^[[:space:]]*#/!s/.*hashedPasswordFile = "\([^"]*\)".*/\1/p' "$host_dir/users.nix")
+fi
+
+require_file "$repo_root/local/gitconfig" "local gitconfig"
+
+if [[ -f "$repo_root/local/bookmarks.html" ]]; then
+  ok "local bookmarks exist"
+else
+  warn "local bookmarks are missing; Zen will still run, but bookmark import will be skipped"
+fi
+
+if [[ -f "$repo_root/local/aws/config" ]]; then
+  ok "AWS config exists"
+else
+  warn "AWS config is missing; run aws configure if this machine needs AWS CLI"
+fi
+
+if [[ -f "$repo_root/secrets/aws/credentials" ]]; then
+  ok "AWS credentials exist"
+else
+  warn "AWS credentials are missing; run aws configure if this machine needs AWS CLI"
+fi
+
+if [[ -f "$host_dir/default.nix" ]] &&
+  grep -Eq '^[[:space:]]*[^#].*modules/nixos/backups\.nix' "$host_dir/default.nix"; then
+  require_file "$repo_root/secrets/restic/password" "Restic password"
+  require_file "$repo_root/secrets/restic/rclone.conf" "Restic rclone config"
+else
+  ok "backups module is not imported by selected host"
+fi
+
+if [[ $errors -gt 0 ]]; then
+  printf '\n%d error(s), %d warning(s)\n' "$errors" "$warnings" >&2
+  exit 1
+fi
+
+printf '\nLocal config looks ready'
+if [[ $warnings -gt 0 ]]; then
+  printf ' with %d warning(s)' "$warnings"
+fi
+printf '.\n'

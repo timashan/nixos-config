@@ -1,0 +1,5 @@
+[user]
+	name = Your Name
+	# Use either your normal email or GitHub's noreply address.
+	# email = you@example.com
+	email = your-github-username@users.noreply.github.com

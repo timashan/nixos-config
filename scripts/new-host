@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage:
+  scripts/new-host <host> <user>
+
+Creates a host from hosts/default and writes local/settings.nix.
+It refuses to overwrite an existing host folder.
+EOF
+}
+
+die() {
+  printf 'error: %s\n' "$*" >&2
+  exit 1
+}
+
+if [[ ${1:-} == "-h" || ${1:-} == "--help" ]]; then
+  usage
+  exit 0
+fi
+
+[[ $# -eq 2 ]] || {
+  usage >&2
+  exit 2
+}
+
+host="$1"
+user="$2"
+
+[[ $host =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]] ||
+  die "host must be DNS-safe: lowercase letters, digits, hyphens, no leading/trailing hyphen"
+[[ ${#host} -le 63 ]] || die "host must be 63 characters or shorter"
+[[ $user =~ ^[a-z_][a-z0-9_-]*$ ]] ||
+  die "user must start with a lowercase letter or _ and contain lowercase letters, digits, _ or -"
+[[ ${#user} -le 32 ]] || die "user must be 32 characters or shorter"
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="$(cd -- "$script_dir/.." && pwd)"
+template_dir="$repo_root/hosts/default"
+host_dir="$repo_root/hosts/$host"
+settings_file="$repo_root/local/settings.nix"
+password_hash="$repo_root/secrets/$user.password.hash"
+
+[[ -d $template_dir ]] || die "missing template host: $template_dir"
+[[ ! -e $host_dir ]] || die "host already exists: $host_dir"
+
+mkdir -p "$repo_root/local" "$repo_root/secrets"
+cp -R "$template_dir" "$host_dir"
+
+cat >"$settings_file" <<EOF
+{
+  host = "$host";
+  hostname = "$host";
+  username = "$user";
+}
+EOF
+
+printf 'Created %s\n' "$host_dir"
+printf 'Updated %s\n' "$settings_file"
+
+if [[ ! -f $password_hash ]]; then
+  cat <<EOF
+
+Next: create the password hash for $user:
+
+  mkpasswd -m sha-512 | sudo tee /etc/nixos/secrets/$user.password.hash >/dev/null
+
+Then replace the generated hardware file for this machine and run:
+
+  nix flake update localConfig
+  ./scripts/check-local
+  git add hosts/$host
+EOF
+fi
