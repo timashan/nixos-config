@@ -39,6 +39,11 @@
       url = "github:caelestia-dots/caelestia";
       flake = false;
     };
+
+    localConfig = {
+      url = "path:/etc/nixos/local/settings.nix";
+      flake = false;
+    };
   };
 
   outputs =
@@ -52,11 +57,11 @@
       zen-browser,
       caelestia-shell,
       caelestia-dots,
+      localConfig,
       ...
     }:
     let
-      localSettings =
-        if builtins.pathExists ./local/settings.nix then import ./local/settings.nix else { };
+      localSettings = import localConfig;
       system = "x86_64-linux";
       hostname = localSettings.hostname or "default";
       host = localSettings.host or hostname;
@@ -107,7 +112,6 @@
             home-manager.extraSpecialArgs = {
               inherit
                 hostname
-                username
                 codex-desktop-linux
                 codexCli
                 zen-browser
@@ -115,8 +119,6 @@
                 caelestia-dots
                 ;
             };
-            home-manager.users.${username} = import ./home/main/home.nix;
-            home-manager.users.private = import ./home/private/home.nix;
           }
         ];
       };

@@ -9,9 +9,11 @@
 {
   imports = [
     ./hardware-configuration.nix
+    ./users.nix
     ../../modules/nixos/base.nix
     ../../modules/nixos/hardware/laptop.nix
-    ../../modules/nixos/hardware/asus-tuf-a15-fa507nu.nix
+    ../../modules/nixos/hardware/asus-laptop.nix
+    ../../modules/nixos/hardware/nvidia-hybrid.nix
     ../../modules/nixos/desktop-plasma.nix
     ../../modules/nixos/desktop-hyprland.nix
     ../../modules/nixos/development.nix
@@ -23,35 +25,12 @@
 
   networking.hostName = hostname;
 
-  users.users.${username} = {
-    isNormalUser = true;
-    description = "Timashan";
-    hashedPasswordFile = "/etc/nixos/secrets/${username}.password.hash";
-    extraGroups = [
-      "wheel"
-      "networkmanager"
-      "audio"
-      "video"
-      "input"
-      "docker"
-      "libvirtd"
-      "kvm"
-      "adbusers"
-    ];
-    shell = pkgs.zsh;
-  };
-
-  users.users.private = {
-    isNormalUser = true;
-    description = "Private";
-    hashedPasswordFile = "/etc/nixos/secrets/private.password.hash";
-    extraGroups = [
-      "networkmanager"
-      "audio"
-      "video"
-      "input"
-    ];
-    shell = pkgs.zsh;
+  # This FA507NU is hybrid graphics: AMD Radeon iGPU plus RTX 4050 Laptop dGPU.
+  # Confirm bus IDs after install with: lspci | grep -E "VGA|3D|Display"
+  boot.kernelPackages = pkgs.linuxPackages_7_0;
+  hardware.nvidia.prime = {
+    amdgpuBusId = "PCI:4:0:0";
+    nvidiaBusId = "PCI:9:0:0";
   };
 
   # Set this to the NixOS release used for the first install.
