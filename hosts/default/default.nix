@@ -11,6 +11,7 @@
     ../../modules/nixos/base.nix
     ../../modules/nixos/desktop-plasma.nix
     ../../modules/nixos/development.nix
+    ../../modules/nixos/ai-agents.nix
     ../../modules/nixos/apps.nix
   ];
 
