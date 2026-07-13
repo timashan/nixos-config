@@ -24,6 +24,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    hermes-agent = {
+      url = "github:nousresearch/hermes-agent";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     zen-browser = {
       url = "github:0xc000022070/zen-browser-flake";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -54,6 +59,7 @@
       codex-desktop-linux,
       codex-cli-nix,
       claude-desktop,
+      hermes-agent,
       zen-browser,
       caelestia-shell,
       caelestia-dots,
@@ -99,6 +105,7 @@
             username
             codexCli
             claude-desktop
+            hermes-agent
             ;
         };
 
