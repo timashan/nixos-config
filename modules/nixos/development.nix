@@ -4,6 +4,7 @@
   username,
   codexCli,
   claude-desktop,
+  hermes-agent,
   ...
 }:
 
@@ -17,6 +18,8 @@ let
     '';
   };
   claudeDesktop = claude-desktop.packages.${system}.claude-desktop-fhs;
+  hermesAgent = hermes-agent.packages.${system}.default;
+  ohMyPi = pkgs.callPackage ../../packages/oh-my-pi { };
 in
 {
   programs.java = {
@@ -91,8 +94,14 @@ in
     ++ lib.optional (pkgs ? vscode) pkgs.vscode
     ++ lib.optional (pkgs ? code-cursor) pkgs.code-cursor
     ++ lib.optional (pkgs ? cursor-cli) cursorCli
+    ++ lib.optional (pkgs ? openclaw) pkgs.openclaw
     ++ lib.optional (pkgs ? gemini-cli) pkgs.gemini-cli
+    ++ lib.optional (pkgs ? claude-code) pkgs.claude-code
+    ++ lib.optional (pkgs ? opencode) pkgs.opencode
+    ++ lib.optional (pkgs ? pi-coding-agent) pkgs.pi-coding-agent
     ++ lib.optional (pkgs ? android-studio) pkgs.android-studio
     ++ [ claudeDesktop ]
+    ++ [ hermesAgent ]
+    ++ [ ohMyPi ]
     ++ [ codexCli ];
 }

@@ -1,0 +1,8 @@
+{
+  "name": "oh-my-pi-nix-wrapper",
+  "version": "16.4.6",
+  "private": true,
+  "dependencies": {
+    "@oh-my-pi/pi-coding-agent": "16.4.6"
+  }
+}
