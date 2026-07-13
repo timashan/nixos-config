@@ -17,6 +17,7 @@
     ../../modules/nixos/desktop-plasma.nix
     ../../modules/nixos/desktop-hyprland.nix
     ../../modules/nixos/development.nix
+    ../../modules/nixos/ai-agents.nix
     ../../modules/nixos/gaming.nix
     ../../modules/nixos/apps.nix
     ../../modules/nixos/vaultwarden.nix
