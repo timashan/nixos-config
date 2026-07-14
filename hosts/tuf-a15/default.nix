@@ -9,6 +9,7 @@
 
 {
   imports = [
+    ./audio.nix
     ./hardware-configuration.nix
     ./users.nix
     ../../modules/nixos/base.nix
