@@ -2,4 +2,14 @@
   host = "my-komputa";
   hostname = "my-komputa";
   username = "your-user";
+  diskDevices = {
+    root = "/dev/disk/by-uuid/<root-uuid>";
+    boot = "/dev/disk/by-uuid/<boot-uuid>";
+    swap = "/dev/disk/by-uuid/<swap-uuid>";
+  };
+  gpuBusIds = {
+    amdgpu = "PCI:<amd-bus>:0:0";
+    nvidia = "PCI:<nvidia-bus>:0:0";
+  };
+  # Run ./scripts/detect-local-hardware to refresh diskDevices and gpuBusIds.
 }

@@ -69,6 +69,7 @@ Next: create the password hash for $user:
 
 Then replace the generated hardware file for this machine and run:
 
+  ./scripts/detect-local-hardware
   nix flake update localConfig
   ./scripts/check-local
   git add hosts/$host

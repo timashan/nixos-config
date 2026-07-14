@@ -73,6 +73,17 @@
       host = localSettings.host or hostname;
       hostPath = ./hosts + "/${host}";
       username = localSettings.username or "admin";
+      defaultDiskDevices = {
+        root = "/dev/disk/by-label/nixos";
+        boot = "/dev/disk/by-label/BOOT";
+        swap = "/dev/disk/by-label/swap";
+      };
+      defaultGpuBusIds = {
+        amdgpu = "PCI:54:0:0";
+        nvidia = "PCI:1:0:0";
+      };
+      diskDevices = defaultDiskDevices // (localSettings.diskDevices or { });
+      gpuBusIds = defaultGpuBusIds // (localSettings.gpuBusIds or { });
       pkgs = nixpkgs.legacyPackages.${system};
       codexCli = codex-cli-nix.packages.${system}.default;
     in
@@ -103,6 +114,8 @@
           inherit
             hostname
             username
+            diskDevices
+            gpuBusIds
             codexCli
             claude-desktop
             hermes-agent
