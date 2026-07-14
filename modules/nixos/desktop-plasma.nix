@@ -5,6 +5,18 @@ let
     [Keyboard]
     NumLock=0
   '';
+  # Screencast/screenshot need Hyprland; Settings must stay on KDE so
+  # Electron/Codex pick up live color-scheme changes from Caelestia.
+  hyprlandPortalConfig = {
+    default = [
+      "kde"
+      "hyprland"
+    ];
+    "org.freedesktop.impl.portal.Settings" = [ "kde" ];
+    "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
+    "org.freedesktop.impl.portal.Screenshot" = [ "hyprland" ];
+    "org.freedesktop.impl.portal.GlobalShortcuts" = [ "hyprland" ];
+  };
 in
 {
   # Plasma 6 is the stable default here. It gives good Wayland, monitor, audio,
@@ -38,10 +50,8 @@ in
     ];
     config = {
       common.default = [ "kde" ];
-      Hyprland.default = [
-        "hyprland"
-        "kde"
-      ];
+      Hyprland = hyprlandPortalConfig;
+      hyprland = hyprlandPortalConfig;
       KDE.default = [ "kde" ];
     };
   };

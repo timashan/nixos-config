@@ -55,8 +55,12 @@ let
     + ''
 
       -- Keep DBus/systemd-launched apps on KDE's Qt platform theme.
-      hl.exec_cmd("${systemctl} --user set-environment QT_QPA_PLATFORMTHEME=kde 'QT_QPA_PLATFORM=wayland;xcb' GDK_BACKEND=wayland,x11 XDG_MENU_PREFIX=plasma-")
-      hl.exec_cmd("${dbusUpdate} --systemd QT_QPA_PLATFORMTHEME=kde 'QT_QPA_PLATFORM=wayland;xcb' GDK_BACKEND=wayland,x11 XDG_MENU_PREFIX=plasma- XDG_CURRENT_DESKTOP=Hyprland XDG_SESSION_TYPE=wayland XDG_SESSION_DESKTOP=Hyprland")
+      -- Import Wayland session env so xdg-desktop-portal-hyprland can screencast;
+      -- restart only the Hyprland portal impl so the main portal (Settings/KDE) stays up.
+      hl.exec_cmd("${systemctl} --user set-environment QT_QPA_PLATFORMTHEME=kde 'QT_QPA_PLATFORM=wayland;xcb' GDK_BACKEND=wayland,x11 XDG_MENU_PREFIX=plasma- XDG_CURRENT_DESKTOP=Hyprland XDG_SESSION_TYPE=wayland XDG_SESSION_DESKTOP=Hyprland")
+      hl.exec_cmd("${systemctl} --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_SESSION_DESKTOP")
+      hl.exec_cmd("${dbusUpdate} --systemd WAYLAND_DISPLAY QT_QPA_PLATFORMTHEME=kde 'QT_QPA_PLATFORM=wayland;xcb' GDK_BACKEND=wayland,x11 XDG_MENU_PREFIX=plasma- XDG_CURRENT_DESKTOP=Hyprland XDG_SESSION_TYPE=wayland XDG_SESSION_DESKTOP=Hyprland")
+      hl.exec_cmd("${systemctl} --user restart xdg-desktop-portal-hyprland.service")
 
       -- Sync toolkit settings for native apps without repainting apps during startup.
       hl.exec_cmd("CAELESTIA_SYNC_NOTIFY=0 caelestia-sync-gtk-settings")
