@@ -36,6 +36,10 @@ require_file "$settings_file" "local settings"
 
 host="default"
 username="admin"
+disk_device_names=()
+disk_device_paths=()
+gpu_bus_id_names=()
+gpu_bus_ids=()
 if [[ -f $settings_file ]]; then
   if command -v nix >/dev/null 2>&1; then
     if detected_host="$(nix eval --impure --raw --expr "(import $settings_file).host or \"default\"" 2>/dev/null)"; then
@@ -46,6 +50,20 @@ if [[ -f $settings_file ]]; then
     if detected_username="$(nix eval --impure --raw --expr "(import $settings_file).username or \"admin\"" 2>/dev/null)"; then
       username="$detected_username"
     fi
+    for disk_device_name in root boot swap; do
+      if disk_device_path="$(nix eval --impure --raw --expr "(import $settings_file).diskDevices.${disk_device_name} or \"\"" 2>/dev/null)" &&
+        [[ -n $disk_device_path ]]; then
+        disk_device_names+=("$disk_device_name")
+        disk_device_paths+=("$disk_device_path")
+      fi
+    done
+    for gpu_bus_id_name in amdgpu nvidia; do
+      if gpu_bus_id="$(nix eval --impure --raw --expr "(import $settings_file).gpuBusIds.${gpu_bus_id_name} or \"\"" 2>/dev/null)" &&
+        [[ -n $gpu_bus_id ]]; then
+        gpu_bus_id_names+=("$gpu_bus_id_name")
+        gpu_bus_ids+=("$gpu_bus_id")
+      fi
+    done
   else
     detected_host="$(sed -n 's/^[[:space:]]*host[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$settings_file" | head -n1)"
     host="${detected_host:-default}"
@@ -54,6 +72,26 @@ if [[ -f $settings_file ]]; then
     warn "nix command not found; parsed host with sed"
   fi
 fi
+
+for index in "${!disk_device_paths[@]}"; do
+  disk_device_name="${disk_device_names[$index]}"
+  disk_device_path="${disk_device_paths[$index]}"
+  if [[ -e $disk_device_path ]]; then
+    ok "disk device exists: diskDevices.$disk_device_name -> $disk_device_path"
+  else
+    error "disk device is missing: diskDevices.$disk_device_name -> $disk_device_path"
+  fi
+done
+
+for index in "${!gpu_bus_ids[@]}"; do
+  gpu_bus_id_name="${gpu_bus_id_names[$index]}"
+  gpu_bus_id="${gpu_bus_ids[$index]}"
+  if [[ $gpu_bus_id =~ ^PCI:[0-9]+:[0-9]+:[0-9]+$ ]]; then
+    ok "GPU bus ID configured: gpuBusIds.$gpu_bus_id_name -> $gpu_bus_id"
+  else
+    error "GPU bus ID has invalid format: gpuBusIds.$gpu_bus_id_name -> $gpu_bus_id"
+  fi
+done
 
 host_dir="$repo_root/hosts/$host"
 if [[ -d $host_dir ]]; then

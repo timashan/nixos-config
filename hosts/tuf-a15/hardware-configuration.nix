@@ -3,12 +3,18 @@
 # to /etc/nixos/configuration.nix instead.
 {
   config,
+  diskDevices ? { },
   lib,
   pkgs,
   modulesPath,
   ...
 }:
 
+let
+  devices = {
+    inherit (diskDevices) root boot swap;
+  };
+in
 {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
@@ -25,12 +31,12 @@
   boot.extraModulePackages = [ ];
 
   fileSystems."/" = {
-    device = "/dev/disk/by-label/nixos";
+    device = devices.root;
     fsType = "ext4";
   };
 
   fileSystems."/boot" = {
-    device = "/dev/disk/by-label/BOOT";
+    device = devices.boot;
     fsType = "vfat";
     options = [
       "fmask=0077"
@@ -39,7 +45,7 @@
   };
 
   swapDevices = [
-    { device = "/dev/disk/by-label/swap"; }
+    { device = devices.swap; }
   ];
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";

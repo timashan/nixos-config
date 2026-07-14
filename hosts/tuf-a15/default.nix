@@ -1,5 +1,6 @@
 {
   config,
+  gpuBusIds ? { },
   pkgs,
   username,
   hostname,
@@ -30,8 +31,8 @@
   # Confirm bus IDs after install with: lspci | grep -E "VGA|3D|Display"
   boot.kernelPackages = pkgs.linuxPackages_7_0;
   hardware.nvidia.prime = {
-    amdgpuBusId = "PCI:4:0:0";
-    nvidiaBusId = "PCI:9:0:0";
+    amdgpuBusId = gpuBusIds.amdgpu;
+    nvidiaBusId = gpuBusIds.nvidia;
   };
 
   # Set this to the NixOS release used for the first install.

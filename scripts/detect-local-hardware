@@ -1,0 +1,140 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="$(cd -- "$script_dir/.." && pwd)"
+settings_file="$repo_root/local/settings.nix"
+
+die() {
+  printf 'error: %s\n' "$*" >&2
+  exit 1
+}
+
+require_cmd() {
+  command -v "$1" >/dev/null 2>&1 || die "missing required command: $1"
+}
+
+nix_setting() {
+  local expr="$1"
+  local fallback="$2"
+
+  if [[ -f $settings_file ]] && command -v nix >/dev/null 2>&1; then
+    nix eval --impure --raw --expr "(import $settings_file).${expr} or \"$fallback\"" 2>/dev/null || printf '%s' "$fallback"
+  else
+    printf '%s' "$fallback"
+  fi
+}
+
+uuid_device_for_mount() {
+  local mountpoint="$1"
+  local source uuid
+
+  source="$(findmnt -no SOURCE --target "$mountpoint" | head -n1)"
+  [[ -n $source ]] || die "could not detect source for $mountpoint"
+
+  uuid="$(uuid_for_source "$source")"
+  [[ -n $uuid ]] || die "could not detect UUID for $mountpoint source $source"
+
+  printf '/dev/disk/by-uuid/%s\n' "$uuid"
+}
+
+uuid_device_for_swap() {
+  local source uuid
+
+  source="$(swapon --noheadings --raw --show=NAME | awk '$1 !~ /(^|\/)zram[0-9]*$/ { print $1; exit }')"
+  [[ -n $source ]] || die "could not detect non-zram swap device"
+
+  uuid="$(uuid_for_source "$source")"
+  [[ -n $uuid ]] || die "could not detect UUID for swap source $source"
+
+  printf '/dev/disk/by-uuid/%s\n' "$uuid"
+}
+
+uuid_for_source() {
+  local source="$1"
+  local resolved_source link resolved_link
+
+  resolved_source="$(readlink -f "$source")"
+  for link in /dev/disk/by-uuid/*; do
+    [[ -e $link ]] || continue
+    resolved_link="$(readlink -f "$link")"
+    if [[ $resolved_link == "$resolved_source" ]]; then
+      basename "$link"
+      return 0
+    fi
+  done
+}
+
+pci_address_to_nix_bus_id() {
+  local address="$1"
+  local bus slot function
+
+  address="${address#*:}"
+  bus="${address%%:*}"
+  address="${address#*:}"
+  slot="${address%%.*}"
+  function="${address##*.}"
+
+  printf 'PCI:%d:%d:%d\n' "$((16#$bus))" "$((16#$slot))" "$((16#$function))"
+}
+
+gpu_bus_id() {
+  local pattern="$1"
+  local address
+
+  address="$(lspci -D | awk -v pattern="$pattern" '
+    /VGA|3D|Display/ && $0 ~ pattern { print $1; exit }
+  ')"
+  [[ -n $address ]] || die "could not detect GPU matching: $pattern"
+
+  pci_address_to_nix_bus_id "$address"
+}
+
+require_cmd awk
+require_cmd findmnt
+require_cmd lspci
+require_cmd nix
+require_cmd readlink
+require_cmd swapon
+
+host="$(nix_setting host default)"
+hostname="$(nix_setting hostname "$host")"
+username="$(nix_setting username admin)"
+neovim_default="$(nix_setting 'neovim.default' '')"
+
+root_device="$(uuid_device_for_mount /)"
+boot_device="$(uuid_device_for_mount /boot)"
+swap_device="$(uuid_device_for_swap)"
+amdgpu_bus_id="$(gpu_bus_id 'AMD|ATI|Advanced Micro Devices')"
+nvidia_bus_id="$(gpu_bus_id 'NVIDIA')"
+
+mkdir -p "$repo_root/local"
+
+tmp_file="$(mktemp "$settings_file.XXXXXX")"
+{
+  printf '{\n'
+  printf '  host = "%s";\n' "$host"
+  printf '  hostname = "%s";\n' "$hostname"
+  printf '  username = "%s";\n' "$username"
+  printf '  diskDevices = {\n'
+  printf '    root = "%s";\n' "$root_device"
+  printf '    boot = "%s";\n' "$boot_device"
+  printf '    swap = "%s";\n' "$swap_device"
+  printf '  };\n'
+  printf '  gpuBusIds = {\n'
+  printf '    amdgpu = "%s";\n' "$amdgpu_bus_id"
+  printf '    nvidia = "%s";\n' "$nvidia_bus_id"
+  printf '  };\n'
+  if [[ -n $neovim_default ]]; then
+    printf '  neovim.default = "%s";\n' "$neovim_default"
+  fi
+  printf '}\n'
+} >"$tmp_file"
+mv "$tmp_file" "$settings_file"
+
+printf 'Updated %s\n' "$settings_file"
+printf '  root:   %s\n' "$root_device"
+printf '  boot:   %s\n' "$boot_device"
+printf '  swap:   %s\n' "$swap_device"
+printf '  amdgpu: %s\n' "$amdgpu_bus_id"
+printf '  nvidia: %s\n' "$nvidia_bus_id"
