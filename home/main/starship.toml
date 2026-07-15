@@ -1,4 +1,4 @@
-# Powerline-style Starship prompt.
+# Caelestia-synced Starship prompt.
 
 add_newline = false
 palette = "caelestia"
@@ -24,35 +24,36 @@ nix = "#c794ff"
 time = "#343b4d"
 exit = "#b7c6ee"
 text = "#f2edf4"
+accent_text = "#314060"
 muted = "#aaa3ad"
 
 [username]
 show_always = true
-style_user = "fg:text bg:user bold"
-style_root = "fg:text bg:git bold"
-format = "[ $user ]($style)"
+style_user = "fg:user bold"
+style_root = "fg:git bold"
+format = "[$user]($style) "
 
 [hostname]
 ssh_only = true
-style = "fg:text bg:user bold"
-format = "[@$hostname ]($style)"
+style = "fg:user bold"
+format = "[@$hostname]($style) "
 
 [directory]
 home_symbol = "~"
 truncation_length = 3
 truncation_symbol = ".../"
 read_only = " ro"
-style = "fg:bg bg:path bold"
-format = "[](fg:user bg:path)[ $path$read_only ]($style)"
+style = "fg:path bold"
+format = "[$path$read_only]($style) "
 
 [git_branch]
 symbol = ""
-style = "fg:text bg:git bold"
-format = "[](fg:path bg:git)[ $symbol $branch ]($style)"
+style = "fg:git bold"
+format = "[$symbol $branch]($style) "
 
 [git_status]
-style = "fg:text bg:git bold"
-format = "[$all_status$ahead_behind ]($style)"
+style = "fg:git bold"
+format = "[$all_status$ahead_behind]($style) "
 conflicted = "="
 ahead = "⇡${count}"
 behind = "⇣${count}"
@@ -67,21 +68,21 @@ deleted = "x${count}"
 
 [nix_shell]
 symbol = "nix"
-style = "fg:bg bg:nix bold"
-format = "[](fg:git bg:nix)[ $symbol ]($style)"
+style = "fg:nix bold"
+format = "[$symbol]($style) "
 
 [cmd_duration]
 min_time = 1000
-style = "fg:text bg:time bold"
-format = "[](fg:nix bg:time)[ $duration ]($style)"
+style = "fg:muted bold"
+format = "[$duration]($style) "
 
 [character]
-success_symbol = "[](fg:time)"
-error_symbol = "[](fg:git)"
-vimcmd_symbol = "[](fg:path)"
+success_symbol = "[❯](fg:exit bold)"
+error_symbol = "[❯](fg:git bold)"
+vimcmd_symbol = "[❮](fg:path bold)"
 
 [time]
 disabled = false
 time_format = "%R"
-style = "fg:text bg:bg bold"
-format = "[](fg:bg)[  $time ]($style)"
+style = "fg:time bold"
+format = "[ $time]($style)"

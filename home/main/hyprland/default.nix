@@ -66,12 +66,37 @@ let
       hl.exec_cmd("CAELESTIA_SYNC_NOTIFY=0 caelestia-sync-gtk-settings")
     '';
 
+  nixosBuiltinLogo = pkgs.writeText "fastfetch-nixos-builtin-logo.txt" (
+    lib.concatStringsSep "\n" [
+      "$1          NIXO       $2NIXOS    NIXO"
+      "$1          NIXOS       $2NIXOS  NIXON"
+      "$1           NIXOS       $2NIXOSNIXON"
+      "$1            NIXOS       $2NIXOSNIX"
+      "$1     NIXOSNIXONIXOSNIXON $2NIXOSN     $1NI"
+      "$1    NIXOSNIXONIXOSNIXONIX $2NIXOS    $1NIXO"
+      "$2           NIXOS           NIXON  $1NIXOS"
+      "$2          NIXOS             NIXO $1NIXOS"
+      "$2         NIXOS               NI $1NIXOS"
+      "$2NIXOSNIXONIXO                  $1NIXOSNIXONIX"
+      "$2NIXOSNIXONIX                  $1NIXOSNIXONIXO"
+      "$2      NIXOS $1NI               XOSNI"
+      "$2     NIXOS $1NIXO             SNIXO"
+      "$2    NIXOS  $1NIXOS           NIXON"
+      "$2    NIXO    $1NIXOS $2NIXOSNIXONIXOSNIXONI"
+      "$2     NI     $1NIXOSN $2NIXOSNIXONIXOSNIXO"
+      "$1           NIXOSNIX         $2NIXOS"
+      "$1          NIXOSNIXON         $2NIXOS"
+      "$1         NIXOS  NIXON         $2NIXOS"
+      "$1         NIXO    SNIXO         $2NIXO"
+    ]
+  );
+
   fastfetchConfig = ''
     {
       "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
       "logo": {
-        "type": "builtin",
-        "source": "NixOS",
+        "type": "file",
+        "source": "${nixosBuiltinLogo}",
         "color": {
           "1": "#d69bb3",
           "2": "#a99ad7",
@@ -299,24 +324,50 @@ let
   caelestiaSyncGtkSettings = pkgs.writeShellScriptBin "caelestia-sync-gtk-settings" ''
         set -euo pipefail
         schemeFile="${home}/.local/state/caelestia/scheme.json"
-        if [ ! -f "$schemeFile" ]; then
+        if [ -z "''${SCHEME_MODE:-}" ] && [ ! -f "$schemeFile" ]; then
           exit 0
         fi
 
-        mode=$(${pkgs.jq}/bin/jq -r .mode "$schemeFile")
+        mode="''${SCHEME_MODE:-$(${pkgs.jq}/bin/jq -r .mode "$schemeFile")}"
         if [ "$mode" = "dark" ]; then
           preferDark=true
           gtkTheme=adw-gtk3-dark
           iconTheme=Papirus-Dark
-          kdeColorScheme=BreezeDark
+          kdeColorScheme=Caelestia
           kdeLookAndFeel=org.kde.breezedark.desktop
+          fallbackKdeColorScheme=BreezeDark
         else
           preferDark=false
           gtkTheme=adw-gtk3
           iconTheme=Papirus-Light
-          kdeColorScheme=BreezeLight
+          kdeColorScheme=Caelestia
           kdeLookAndFeel=org.kde.breeze.desktop
+          fallbackKdeColorScheme=BreezeLight
         fi
+        kdeSchemeFile="${home}/.config/qtengine/caelestia.colors"
+        fallbackKdeSchemeFile="${pkgs.kdePackages.breeze}/share/color-schemes/$fallbackKdeColorScheme.colors"
+        coloursJson="''${SCHEME_COLOURS:-}"
+        if [ -z "$coloursJson" ] && [ -f "$schemeFile" ]; then
+          coloursJson=$(${pkgs.jq}/bin/jq -c .colours "$schemeFile")
+        fi
+
+        colour() {
+          key="$1"
+          fallback="$2"
+          value=""
+          if [ -n "$coloursJson" ]; then
+            value=$(printf '%s' "$coloursJson" | ${pkgs.jq}/bin/jq -r --arg key "$key" '.[$key] // empty')
+          fi
+
+          if [ -z "$value" ] || [ "$value" = "null" ]; then
+            value="$fallback"
+          fi
+
+          case "$value" in
+            \#*) printf '%s\n' "$value" ;;
+            *) printf '#%s\n' "$value" ;;
+          esac
+        }
 
         for ver in gtk-3.0 gtk-4.0; do
           dir="${home}/.config/$ver"
@@ -335,7 +386,15 @@ let
         dconf write /org/gnome/desktop/interface/icon-theme "'$iconTheme'" >/dev/null 2>&1 || true
 
         kdeglobals="${home}/.config/kdeglobals"
-        kdeSchemeFile="${pkgs.kdePackages.breeze}/share/color-schemes/$kdeColorScheme.colors"
+        kdeUserSchemes="${home}/.local/share/color-schemes"
+        mkdir -p "$kdeUserSchemes"
+        if [ -f "$kdeSchemeFile" ]; then
+          cp "$kdeSchemeFile" "$kdeUserSchemes/Caelestia.colors"
+        else
+          kdeSchemeFile="$fallbackKdeSchemeFile"
+          kdeColorScheme="$fallbackKdeColorScheme"
+        fi
+
         if [ -f "$kdeSchemeFile" ]; then
           mkdir -p "$(dirname "$kdeglobals")"
           touch "$kdeglobals"
@@ -367,6 +426,69 @@ let
         "$kwriteconfig6" --file kdeglobals --group KDE --key LookAndFeelPackage "$kdeLookAndFeel" >/dev/null 2>&1 || true
         "$kwriteconfig6" --file kdeglobals --group KDE --key widgetStyle Breeze >/dev/null 2>&1 || true
         "$kwriteconfig6" --file kdeglobals --group Icons --key Theme "$iconTheme" >/dev/null 2>&1 || true
+
+    starshipConfig="${home}/.config/starship.toml"
+        if [ -f "$starshipConfig" ]; then
+      starshipBg="$(colour surfaceContainer "$(colour surface 2b2930)")"
+      starshipUser="$(colour primary 5c87cf)"
+      starshipPath="$(colour kpositive "$(colour positive 36b2ff)")"
+      starshipGit="$(colour knegative "$(colour negative 7f75ff)")"
+      starshipNix="$(colour kneutral "$(colour neutral c794ff)")"
+          starshipTime="$(colour secondaryContainer 343b4d)"
+          starshipExit="$(colour primary b7c6ee)"
+          starshipText="$(colour onSurface "$(colour text f2edf4)")"
+          starshipAccentText="$(colour onPrimary "$starshipText")"
+          starshipMuted="$(colour onSurfaceVariant "$(colour subtext1 aaa3ad)")"
+
+      starshipTmp="$(mktemp)"
+      ${pkgs.gawk}/bin/awk '
+        /^\[palettes\.caelestia\]$/ {
+              skip = 1
+              next
+            }
+            /^\[/ {
+              skip = 0
+        }
+        !skip { print }
+      ' "$starshipConfig" > "$starshipTmp"
+      {
+        printf '\n[palettes.caelestia]\n'
+        printf 'bg = "%s"\n' "$starshipBg"
+        printf 'user = "%s"\n' "$starshipUser"
+        printf 'path = "%s"\n' "$starshipPath"
+        printf 'git = "%s"\n' "$starshipGit"
+        printf 'nix = "%s"\n' "$starshipNix"
+            printf 'time = "%s"\n' "$starshipTime"
+            printf 'exit = "%s"\n' "$starshipExit"
+            printf 'text = "%s"\n' "$starshipText"
+            printf 'accent_text = "%s"\n' "$starshipAccentText"
+            printf 'muted = "%s"\n' "$starshipMuted"
+          } >> "$starshipTmp"
+          mv "$starshipTmp" "$starshipConfig"
+        fi
+
+        fastfetchConfig="${home}/.config/fastfetch/config.jsonc"
+        if [ -f "$fastfetchConfig" ]; then
+          fastfetchLogoA="$(colour term1 "$(colour primary d69bb3)")"
+          fastfetchLogoB="$(colour term2 "$(colour tertiary a99ad7)")"
+          fastfetchDisplay="$(colour term1 "$(colour primary "$(colour text cbbbe8)")")"
+          fastfetchTmp="$(mktemp)"
+          ${pkgs.jq}/bin/jq \
+            --arg logoA "$fastfetchLogoA" \
+            --arg logoB "$fastfetchLogoB" \
+            --arg display "$fastfetchDisplay" \
+            '
+              .logo.color."1" = $logoA
+              | .logo.color."2" = $logoB
+              | .logo.color."3" = $logoA
+              | .logo.color."4" = $logoB
+              | .logo.color."5" = $logoA
+              | .logo.color."6" = $logoB
+              | .display.color = $display
+            ' "$fastfetchConfig" > "$fastfetchTmp" \
+            && mv "$fastfetchTmp" "$fastfetchConfig" \
+            || rm -f "$fastfetchTmp"
+        fi
 
         if [ "''${CAELESTIA_SYNC_NOTIFY:-1}" != "0" ]; then
           # Tell running KDE/Qt apps to reload the palette/style/icon settings.
@@ -451,11 +573,11 @@ in
       end
     '';
     "foot" = cfgDir "${dots}/foot";
-    "fastfetch/config.jsonc".text = fastfetchConfig;
+    "fastfetch/config.base.jsonc".text = fastfetchConfig;
     "btop" = cfgDir "${dots}/btop";
     "micro" = cfgDir "${dots}/micro";
     "Thunar" = cfgDir "${dots}/thunar";
-    "starship.toml" = cfg ../starship.toml;
+    "starship.base.toml" = cfg ../starship.toml;
 
     "Code/User/settings.json" = cfg vscodeSettings;
     "Code/User/keybindings.json" = cfg "${dots}/vscode/keybindings.json";
@@ -566,17 +688,43 @@ in
     fi
   '';
 
-  # Undo stale Caelestia/Darkly KDE state, then re-apply the current dark/light mode.
-  home.activation.repairKdeglobals = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    kdeglobals="${home}/.config/kdeglobals"
-    kwriteconfig6="${lib.getExe' pkgs.kdePackages.kconfig "kwriteconfig6"}"
-    if [ -f "$kdeglobals" ]; then
-      $kwriteconfig6 --file kdeglobals --group General --key ColorSchemeHash --delete 2>/dev/null || true
-      $DRY_RUN_CMD sed -i '/^widgetStyle\[\$d\]$/d' "$kdeglobals" 2>/dev/null || true
-      $DRY_RUN_CMD rm -f "${home}/.local/share/color-schemes/Caelestia.colors"
-    fi
-    $DRY_RUN_CMD env CAELESTIA_SYNC_NOTIFY=0 ${caelestiaSyncGtkSettings}/bin/caelestia-sync-gtk-settings
+  home.activation.starshipWritableConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    starshipConfig="${home}/.config/starship.toml"
+    $DRY_RUN_CMD mkdir -p "$(dirname "$starshipConfig")"
+    $DRY_RUN_CMD rm -f "$starshipConfig"
+    $DRY_RUN_CMD cp ${../starship.toml} "$starshipConfig"
+    $DRY_RUN_CMD chmod u+w "$starshipConfig"
   '';
+
+  home.activation.fastfetchWritableConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    fastfetchConfig="${home}/.config/fastfetch/config.jsonc"
+    $DRY_RUN_CMD mkdir -p "$(dirname "$fastfetchConfig")"
+    $DRY_RUN_CMD rm -f "$fastfetchConfig"
+    $DRY_RUN_CMD cp ${pkgs.writeText "fastfetch-config.jsonc" fastfetchConfig} "$fastfetchConfig"
+    $DRY_RUN_CMD chmod u+w "$fastfetchConfig"
+  '';
+
+  # Undo stale Caelestia/Darkly KDE state, then re-apply the current dark/light mode.
+  home.activation.repairKdeglobals =
+    lib.hm.dag.entryAfter
+      [
+        "writeBoundary"
+        "fastfetchWritableConfig"
+        "starshipWritableConfig"
+      ]
+      ''
+        kdeglobals="${home}/.config/kdeglobals"
+        kwriteconfig6="${lib.getExe' pkgs.kdePackages.kconfig "kwriteconfig6"}"
+        if [ -f "$kdeglobals" ]; then
+          $kwriteconfig6 --file kdeglobals --group General --key ColorSchemeHash --delete 2>/dev/null || true
+          $DRY_RUN_CMD sed -i '/^widgetStyle\[\$d\]$/d' "$kdeglobals" 2>/dev/null || true
+          $DRY_RUN_CMD rm -f "${home}/.local/share/color-schemes/Caelestia.colors"
+        fi
+        $DRY_RUN_CMD env CAELESTIA_SYNC_NOTIFY=0 ${caelestiaSyncGtkSettings}/bin/caelestia-sync-gtk-settings
+      '';
+
+  programs.caelestia.cli.settings.theme.postHook =
+    lib.mkForce "${caelestiaSyncGtkSettings}/bin/caelestia-sync-gtk-settings";
 
   wayland.windowManager.hyprland = {
     enable = true;
