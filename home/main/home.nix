@@ -12,6 +12,7 @@
 
 let
   system = pkgs.stdenv.hostPlatform.system;
+  home = config.home.homeDirectory;
   patchedCaelestiaShell = (
     caelestia-shell.packages.${system}.caelestia-shell.overrideAttrs (old: {
       postInstall = (old.postInstall or "") + ''
@@ -84,8 +85,6 @@ in
       theme = {
         enableGtk = true;
         enableQt = true;
-        # After Caelestia updates generated theme files, sync toolkit settings for native apps.
-        postHook = "caelestia-sync-gtk-settings";
       };
     };
   };
@@ -140,6 +139,35 @@ in
   xdg.configFile."kcminputrc".text = ''
     [Keyboard]
     NumLock=0
+  '';
+
+  home.activation.dolphinTheme = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    kwriteconfig6="${lib.getExe' pkgs.kdePackages.kconfig "kwriteconfig6"}"
+
+    $DRY_RUN_CMD mkdir -p "${home}/.config"
+
+    $DRY_RUN_CMD "$kwriteconfig6" --file dolphinrc --group General --key BrowseThroughArchives true
+    $DRY_RUN_CMD "$kwriteconfig6" --file dolphinrc --group General --key EditableUrl true
+    $DRY_RUN_CMD "$kwriteconfig6" --file dolphinrc --group General --key OpenExternallyCalledFolderInNewTab true
+    $DRY_RUN_CMD "$kwriteconfig6" --file dolphinrc --group General --key ShowFullPath true
+    $DRY_RUN_CMD "$kwriteconfig6" --file dolphinrc --group General --key ShowFullPathInTitlebar true
+    $DRY_RUN_CMD "$kwriteconfig6" --file dolphinrc --group General --key ShowToolTips true
+    $DRY_RUN_CMD "$kwriteconfig6" --file dolphinrc --group General --key UseTabForSwitchingSplitView true
+    $DRY_RUN_CMD "$kwriteconfig6" --file dolphinrc --group IconsMode --key PreviewSize 80
+    $DRY_RUN_CMD "$kwriteconfig6" --file dolphinrc --group DetailsMode --key PreviewSize 48
+    $DRY_RUN_CMD "$kwriteconfig6" --file dolphinrc --group CompactMode --key PreviewSize 32
+    $DRY_RUN_CMD "$kwriteconfig6" --file dolphinrc --group MainWindow --key MenuBar Disabled
+    $DRY_RUN_CMD "$kwriteconfig6" --file dolphinrc --group PlacesPanel --key IconSize 22
+
+    viewProps="${home}/.local/share/dolphin/view_properties/global/.directory"
+    $DRY_RUN_CMD mkdir -p "$(dirname "$viewProps")"
+    $DRY_RUN_CMD "$kwriteconfig6" --file "$viewProps" --group Dolphin --key PreviewsShown true
+    $DRY_RUN_CMD "$kwriteconfig6" --file "$viewProps" --group Dolphin --key SortFoldersFirst true
+    $DRY_RUN_CMD "$kwriteconfig6" --file "$viewProps" --group Dolphin --key SortHiddenLast true
+    $DRY_RUN_CMD "$kwriteconfig6" --file "$viewProps" --group Dolphin --key SortOrder 1
+    $DRY_RUN_CMD "$kwriteconfig6" --file "$viewProps" --group Dolphin --key SortRole name
+    $DRY_RUN_CMD "$kwriteconfig6" --file "$viewProps" --group Dolphin --key ViewMode 1
+    $DRY_RUN_CMD "$kwriteconfig6" --file "$viewProps" --group Dolphin --key VisibleRoles "Details_text,Details_size,Details_modificationtime"
   '';
 
   home.sessionVariables = {

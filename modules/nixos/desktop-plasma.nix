@@ -88,6 +88,7 @@ in
     kdePackages.filelight
     kdePackages.spectacle
     kdePackages.dolphin-plugins
+    papirus-icon-theme
     pavucontrol
     crosspipe
   ];
