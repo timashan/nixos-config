@@ -100,7 +100,6 @@ require_cmd swapon
 host="$(nix_setting host default)"
 hostname="$(nix_setting hostname "$host")"
 username="$(nix_setting username admin)"
-neovim_default="$(nix_setting 'neovim.default' '')"
 
 root_device="$(uuid_device_for_mount /)"
 boot_device="$(uuid_device_for_mount /boot)"
@@ -125,9 +124,6 @@ tmp_file="$(mktemp "$settings_file.XXXXXX")"
   printf '    amdgpu = "%s";\n' "$amdgpu_bus_id"
   printf '    nvidia = "%s";\n' "$nvidia_bus_id"
   printf '  };\n'
-  if [[ -n $neovim_default ]]; then
-    printf '  neovim.default = "%s";\n' "$neovim_default"
-  fi
   printf '}\n'
 } >"$tmp_file"
 mv "$tmp_file" "$settings_file"

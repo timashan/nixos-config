@@ -370,7 +370,7 @@ in
     fi
   '';
 
-  home.activation.nvchadStarter = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+  home.activation.lazyVimStarter = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     nvimDir="${config.home.homeDirectory}/.config/nvim"
     initLua="$nvimDir/init.lua"
 
@@ -380,11 +380,9 @@ in
 
     if [ ! -e "$initLua" ]; then
       $DRY_RUN_CMD mkdir -p "$(dirname "$nvimDir")"
-      if [ -e "$nvimDir" ]; then
-        backup="$nvimDir.backup-before-nvchad-$(date +%Y%m%d%H%M%S)"
-        $DRY_RUN_CMD mv "$nvimDir" "$backup"
+      if $DRY_RUN_CMD env GIT_CONFIG_GLOBAL=/dev/null ${pkgs.git}/bin/git clone https://github.com/LazyVim/starter "$nvimDir"; then
+        $DRY_RUN_CMD rm -rf "$nvimDir/.git"
       fi
-      $DRY_RUN_CMD ${pkgs.git}/bin/git clone https://github.com/NvChad/starter "$nvimDir" || true
     fi
   '';
 
