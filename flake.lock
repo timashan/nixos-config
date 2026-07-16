@@ -251,8 +251,8 @@
     "localConfig": {
       "flake": false,
       "locked": {
-        "lastModified": 1784021175,
-        "narHash": "sha256-hZLOt3rkELskqLvhP3rKMNu42iJabTdGBkMIDJ3zFqU=",
+        "lastModified": 1784208299,
+        "narHash": "sha256-s6ZiWpMvmbo3dsMEedAqnuVl/Yim2hgG+wqQRJRppuY=",
         "path": "/etc/nixos/local/settings.nix",
         "type": "path"
       },
