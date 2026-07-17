@@ -9,7 +9,6 @@
 let
   home = config.home.homeDirectory;
   dots = caelestia-dots;
-  vscodeSettings = ../vscode/settings.json;
   kittyPadding = "12";
   kittyListenOn = "unix:/tmp/kitty-${config.home.username}";
   setKittyOpacity =
@@ -637,11 +636,6 @@ in
     "micro" = cfgDir "${dots}/micro";
     "Thunar" = cfgDir "${dots}/thunar";
     "starship.base.toml" = cfg ../starship.toml;
-
-    "Code/User/settings.json" = cfg vscodeSettings;
-    "Code/User/keybindings.json" = cfg "${dots}/vscode/keybindings.json";
-    "Cursor/User/settings.json" = cfg vscodeSettings;
-    "code-flags.conf" = cfg "${dots}/vscode/flags.conf";
 
     "caelestia/hypr-vars.lua".text = ''
       return {

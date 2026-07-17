@@ -431,6 +431,7 @@ in
     eza
     bat
     fzf
+    stow
     ripgrep
     fd
     wl-clipboard
