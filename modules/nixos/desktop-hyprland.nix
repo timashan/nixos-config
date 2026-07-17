@@ -36,6 +36,7 @@
     grim
     hyprpicker
     jq
+    kitty
     libnotify
     micro
     networkmanagerapplet

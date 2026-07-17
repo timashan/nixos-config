@@ -10,6 +10,36 @@ let
   home = config.home.homeDirectory;
   dots = caelestia-dots;
   vscodeSettings = ../vscode/settings.json;
+  kittyPadding = "12";
+  kittyListenOn = "unix:/tmp/kitty-${config.home.username}";
+  setKittyOpacity =
+    opacity:
+    ''"${lib.getExe' pkgs.kitty "kitten"} @ --to ${kittyListenOn}-" .. tostring(active.pid) .. " set-background-opacity ${opacity} >/dev/null 2>&1 || true"'';
+  setKittyPadding =
+    padding:
+    ''"${lib.getExe' pkgs.kitty "kitten"} @ --to ${kittyListenOn}-" .. tostring(active.pid) .. " set-spacing padding=${padding} >/dev/null 2>&1 || true"'';
+  kittyConfig = ''
+    shell fish
+    term xterm-kitty
+    listen_on ${kittyListenOn}
+
+    font_family JetBrains Mono Nerd Font
+    font_size 12
+
+    window_padding_width ${kittyPadding}
+    background_opacity 0.78
+    dynamic_background_opacity yes
+    auto_reload_config -1
+
+    cursor_shape beam
+    cursor_beam_thickness 1.5
+
+    scrollback_lines 10000
+    scrollbar never
+    allow_remote_control yes
+    enable_audio_bell no
+    confirm_os_window_close 0
+  '';
 
   cfg = path: {
     source = path;
@@ -421,8 +451,8 @@ let
         kwriteconfig6="${lib.getExe' pkgs.kdePackages.kconfig "kwriteconfig6"}"
         "$kwriteconfig6" --file kdeglobals --group General --key ColorScheme "$kdeColorScheme" >/dev/null 2>&1 || true
         "$kwriteconfig6" --file kdeglobals --group General --key ColorSchemeHash --delete >/dev/null 2>&1 || true
-        "$kwriteconfig6" --file kdeglobals --group General --key TerminalApplication foot >/dev/null 2>&1 || true
-        "$kwriteconfig6" --file kdeglobals --group General --key TerminalService foot.desktop >/dev/null 2>&1 || true
+        "$kwriteconfig6" --file kdeglobals --group General --key TerminalApplication kitty >/dev/null 2>&1 || true
+        "$kwriteconfig6" --file kdeglobals --group General --key TerminalService kitty.desktop >/dev/null 2>&1 || true
         "$kwriteconfig6" --file kdeglobals --group KDE --key LookAndFeelPackage "$kdeLookAndFeel" >/dev/null 2>&1 || true
         "$kwriteconfig6" --file kdeglobals --group KDE --key widgetStyle Breeze >/dev/null 2>&1 || true
         "$kwriteconfig6" --file kdeglobals --group Icons --key Theme "$iconTheme" >/dev/null 2>&1 || true
@@ -504,6 +534,32 @@ let
       [ ''hl.env("QT_QPA_PLATFORMTHEME", "qtengine")'' ]
       [ ''hl.env("QT_QPA_PLATFORMTHEME", "kde")'' ]
       (lib.readFile "${dots}/hypr/hyprland/env.lua");
+
+  patchedKeybinds =
+    builtins.replaceStrings
+      [ ''hl.bind(vars.kbWindowFullscreen, hl.dsp.window.fullscreen({ mode = "fullscreen" }))'' ]
+      [
+        ''
+          hl.bind(vars.kbWindowFullscreen, function()
+              local active = hl.get_active_window()
+              local class = active and string.lower(active.class or active.initial_class or "") or ""
+
+              if class == "kitty" then
+                  if active.fullscreen == 0 then
+                      hl.dispatch(hl.dsp.exec_cmd(${setKittyPadding "0"}))
+                      hl.dispatch(hl.dsp.exec_cmd(${setKittyOpacity "1"}))
+                  else
+                      hl.dispatch(hl.dsp.exec_cmd(${setKittyPadding kittyPadding}))
+                      hl.dispatch(hl.dsp.exec_cmd(${setKittyOpacity "0.78"}))
+                  end
+              end
+
+              hl.dispatch(hl.dsp.window.fullscreen({ mode = "fullscreen" }))
+          end)
+        ''
+      ]
+      (lib.readFile "${dots}/hypr/hyprland/keybinds.lua");
+
 in
 {
   home.packages =
@@ -552,6 +608,7 @@ in
   xdg.configFile = hyprlandModuleConfig // {
     "hypr/hyprland/env.lua".text = patchedEnv;
     "hypr/hyprland/execs.lua".text = patchedExecs;
+    "hypr/hyprland/keybinds.lua".text = patchedKeybinds;
     "hypr/scheme" = cfgDir "${dots}/hypr/scheme";
     "hypr/variables.lua" = cfg "${dots}/hypr/variables.lua";
 
@@ -566,12 +623,14 @@ in
             set -gx FZF_EXPANSION_OPTS "--preview='bat -n --color=always --line-range :200 {}' --preview-window=right:60%:wrap --bind='ctrl-/:toggle-preview'"
             command -q fzf; and fzf --fish | source
         end
+
       '';
     "fish/functions/fish_greeting.fish".text = ''
       function fish_greeting
           command -v fastfetch &> /dev/null && fastfetch
       end
     '';
+    "kitty/kitty.conf".text = kittyConfig;
     "foot" = cfgDir "${dots}/foot";
     "fastfetch/config.base.jsonc".text = fastfetchConfig;
     "btop" = cfgDir "${dots}/btop";
@@ -586,7 +645,7 @@ in
 
     "caelestia/hypr-vars.lua".text = ''
       return {
-        terminal = "foot",
+        terminal = "kitty",
         browser = "zen",
         editor = "code",
         fileExplorer = "dolphin",
@@ -629,8 +688,8 @@ in
 
   home.sessionVariables = {
     GTK2_RC_FILES = lib.mkDefault "${home}/.gtkrc-2.0";
-    TERMINAL = lib.mkDefault "foot";
-    KTERMINAL = lib.mkDefault "foot";
+    TERMINAL = lib.mkDefault "kitty";
+    KTERMINAL = lib.mkDefault "kitty";
     XCURSOR_SIZE = lib.mkDefault "24";
     HYPRCURSOR_SIZE = lib.mkDefault "24";
     QT_QPA_PLATFORMTHEME = lib.mkForce "kde";
