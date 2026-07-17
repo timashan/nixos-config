@@ -73,7 +73,7 @@ in
     cli.enable = true;
     settings = {
       general.apps = {
-        terminal = [ "foot" ];
+        terminal = [ "kitty" ];
         audio = [ "pavucontrol" ];
         explorer = [ "dolphin" ];
       };
