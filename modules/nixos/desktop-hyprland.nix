@@ -54,6 +54,7 @@
     wireplumber
     xdg-user-dirs
     thunar
+    warp-terminal
     ydotool
     zoxide
   ];
