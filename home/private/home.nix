@@ -6,6 +6,7 @@
 {
   imports = [
     ../../modules/home-manager/base.nix
+    ../../modules/home-manager/herdr.nix
     ../../modules/home-manager/tmux.nix
     ../../modules/home-manager/zsh.nix
   ];
