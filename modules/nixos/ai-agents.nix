@@ -13,6 +13,7 @@ let
   claudeDesktop = claude-desktop.packages.${system}.claude-desktop-fhs;
   hermesAgent = hermes-agent.packages.${system}.default;
   herdrPackage = herdr.packages.${system}.default;
+  grok = pkgs.callPackage ../../packages/grok { };
   ohMyPi = pkgs.callPackage ../../packages/oh-my-pi { };
 in
 {
@@ -24,6 +25,7 @@ in
     ++ [
       codexCli
       claudeDesktop
+      grok
       hermesAgent
       herdrPackage
       ohMyPi
