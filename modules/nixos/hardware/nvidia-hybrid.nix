@@ -37,8 +37,24 @@
     };
   };
 
+  systemd.services.nvidia-device-nodes = {
+    description = "Create NVIDIA device nodes";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "systemd-udevd.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    path = [ pkgs.nvidia-modprobe ];
+    script = ''
+      nvidia-modprobe -c 0
+      nvidia-modprobe -u
+    '';
+  };
+
   environment.systemPackages =
     (with pkgs; [
+      nvidia-modprobe
       vulkan-tools
       mesa-demos
       radeontop
