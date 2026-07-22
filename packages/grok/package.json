@@ -1,0 +1,8 @@
+{
+  "name": "grok-nix-wrapper",
+  "version": "0.2.106",
+  "private": true,
+  "dependencies": {
+    "@xai-official/grok": "0.2.106"
+  }
+}
