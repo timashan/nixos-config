@@ -30,6 +30,8 @@ in
         "browser.places.importBookmarksHTML" = true;
         "browser.toolbars.bookmarks.visibility" = "always";
         "extensions.autoDisableScopes" = 0;
+        "media.ffmpeg.vaapi.enabled" = true;
+        "media.hardware-video-decoding.force-enabled" = true;
       };
     };
   };

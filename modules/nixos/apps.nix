@@ -41,6 +41,7 @@
       vlc
       mpv
       ffmpeg-full
+      libva-utils
       yt-dlp
       obs-studio
       moonlight-qt

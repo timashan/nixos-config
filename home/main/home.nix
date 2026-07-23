@@ -194,6 +194,14 @@ in
     '';
   };
 
+  home.file.".config/chromium-flags.conf" = {
+    force = true;
+    text = ''
+      # Managed by Home Manager — Chromium launch flags.
+      --enable-features=AcceleratedVideoDecodeLinuxGL,AcceleratedVideoDecodeLinuxZeroCopyGL
+    '';
+  };
+
   home.activation.codexDesktop = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         codexHome="${config.home.homeDirectory}/.codex"
         configToml="$codexHome/config.toml"
