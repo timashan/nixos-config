@@ -5,6 +5,9 @@
   ...
 }:
 
+let
+  zennotes = pkgs.callPackage ../../packages/zennotes { };
+in
 {
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
@@ -56,6 +59,7 @@
       telegram-desktop
       bitwarden-desktop
       obsidian
+      zennotes
       syncthing
       syncthingtray
       zip
