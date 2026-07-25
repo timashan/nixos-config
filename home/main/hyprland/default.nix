@@ -765,7 +765,13 @@ in
 
   home.activation.rebuildKdeServiceCache = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [ -z "''${DRY_RUN:-}" ]; then
-      XDG_MENU_PREFIX=plasma- ${lib.getExe' pkgs.kdePackages.kservice "kbuildsycoca6"} --noincremental >/dev/null 2>&1 || true
+      stampDir="${home}/.local/state/home-manager/boot-activation"
+      stamp="$stampDir/kbuildsycoca-generation"
+      if [ "$(cat "$stamp" 2>/dev/null || true)" != "$newGenPath" ]; then
+        XDG_MENU_PREFIX=plasma- ${lib.getExe' pkgs.kdePackages.kservice "kbuildsycoca6"} --noincremental >/dev/null 2>&1 || true
+        mkdir -p "$stampDir"
+        printf '%s\n' "$newGenPath" > "$stamp"
+      fi
     fi
   '';
 
@@ -794,14 +800,20 @@ in
         "starshipWritableConfig"
       ]
       ''
-        kdeglobals="${home}/.config/kdeglobals"
-        kwriteconfig6="${lib.getExe' pkgs.kdePackages.kconfig "kwriteconfig6"}"
-        if [ -f "$kdeglobals" ]; then
-          $kwriteconfig6 --file kdeglobals --group General --key ColorSchemeHash --delete 2>/dev/null || true
-          $DRY_RUN_CMD sed -i '/^widgetStyle\[\$d\]$/d' "$kdeglobals" 2>/dev/null || true
-          $DRY_RUN_CMD rm -f "${home}/.local/share/color-schemes/Caelestia.colors"
+        stampDir="${home}/.local/state/home-manager/boot-activation"
+        stamp="$stampDir/kdeglobals-repair-generation"
+        if [ "$(cat "$stamp" 2>/dev/null || true)" != "$newGenPath" ]; then
+          kdeglobals="${home}/.config/kdeglobals"
+          kwriteconfig6="${lib.getExe' pkgs.kdePackages.kconfig "kwriteconfig6"}"
+          if [ -f "$kdeglobals" ]; then
+            $kwriteconfig6 --file kdeglobals --group General --key ColorSchemeHash --delete 2>/dev/null || true
+            $DRY_RUN_CMD sed -i '/^widgetStyle\[\$d\]$/d' "$kdeglobals" 2>/dev/null || true
+            $DRY_RUN_CMD rm -f "${home}/.local/share/color-schemes/Caelestia.colors"
+          fi
+          $DRY_RUN_CMD env CAELESTIA_SYNC_NOTIFY=0 ${caelestiaSyncGtkSettings}/bin/caelestia-sync-gtk-settings
+          $DRY_RUN_CMD mkdir -p "$stampDir"
+          $DRY_RUN_CMD printf '%s\n' "$newGenPath" > "$stamp"
         fi
-        $DRY_RUN_CMD env CAELESTIA_SYNC_NOTIFY=0 ${caelestiaSyncGtkSettings}/bin/caelestia-sync-gtk-settings
       '';
 
   programs.caelestia.cli.settings.theme.postHook =

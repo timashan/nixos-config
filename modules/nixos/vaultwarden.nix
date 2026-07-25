@@ -1,4 +1,4 @@
-{ ... }:
+{ lib, ... }:
 
 {
   services.tailscale = {
@@ -17,6 +17,13 @@
 
       # Local trial mode: create the first account before exposing the service.
       SIGNUPS_ALLOWED = true;
+    };
+  };
+
+  systemd.services = {
+    vaultwarden = {
+      after = lib.mkForce [ "network.target" ];
+      wants = lib.mkForce [ ];
     };
   };
 }

@@ -40,7 +40,7 @@
       configurationLimit = 10;
     };
     efi.canTouchEfiVariables = true;
-    timeout = 5;
+    timeout = 1;
   };
 
   boot.kernelModules = [ "kvm-amd" ];
@@ -58,6 +58,10 @@
 
   networking.networkmanager.enable = true;
   networking.firewall.enable = true;
+
+  # On this laptop, services should handle Wi-Fi becoming usable after boot
+  # instead of blocking graphical startup on NetworkManager's online probe.
+  systemd.services."NetworkManager-wait-online".wantedBy = lib.mkForce [ ];
 
   security.rtkit.enable = true;
   security.sudo.wheelNeedsPassword = true;
