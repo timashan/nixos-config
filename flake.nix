@@ -91,6 +91,11 @@
       diskDevices = defaultDiskDevices // (localSettings.diskDevices or { });
       gpuBusIds = defaultGpuBusIds // (localSettings.gpuBusIds or { });
       pkgs = nixpkgs.legacyPackages.${system};
+      gpuScreenRecorderNotification = pkgs.callPackage ./packages/gpu-screen-recorder-notification { };
+      gpuScreenRecorderUi = pkgs.callPackage ./packages/gpu-screen-recorder-ui {
+        gpu-screen-recorder = pkgs.gpu-screen-recorder;
+        gpu-screen-recorder-notification = gpuScreenRecorderNotification;
+      };
       codexCli = codex-cli-nix.packages.${system}.default;
     in
     {
@@ -131,6 +136,19 @@
 
         modules = [
           hostPath
+
+          ./modules/nixos/gpu-screen-recorder-ui.nix
+          {
+            programs.gpu-screen-recorder = {
+              enable = true;
+              package = pkgs.gpu-screen-recorder;
+              ui = {
+                enable = true;
+                package = gpuScreenRecorderUi;
+                notificationPackage = gpuScreenRecorderNotification;
+              };
+            };
+          }
 
           home-manager.nixosModules.home-manager
           {
