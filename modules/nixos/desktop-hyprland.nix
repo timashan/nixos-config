@@ -4,6 +4,7 @@
   # Hyprland session at SDDM alongside Plasma (primary).
   programs.hyprland = {
     enable = true;
+    withUWSM = true;
     xwayland.enable = true;
   };
 

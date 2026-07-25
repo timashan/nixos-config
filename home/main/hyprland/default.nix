@@ -52,8 +52,11 @@ let
   };
 
   gsettings = lib.getExe' pkgs.glib "gsettings";
-  dbusUpdate = lib.getExe' pkgs.dbus "dbus-update-activation-environment";
   systemctl = lib.getExe' pkgs.systemd "systemctl";
+  fixHyprlandPortal = pkgs.writeShellScriptBin "fix-hyprland-portal" ''
+    ${systemctl} --user reset-failed xdg-desktop-portal-hyprland.service
+    ${systemctl} --user restart xdg-desktop-portal-hyprland.service
+  '';
 
   patchedExecs =
     lib.concatStringsSep "\n" (
@@ -82,14 +85,6 @@ let
         )
     )
     + ''
-
-      -- Keep DBus/systemd-launched apps on KDE's Qt platform theme.
-      -- Import Wayland session env so xdg-desktop-portal-hyprland can screencast;
-      -- restart only the Hyprland portal impl so the main portal (Settings/KDE) stays up.
-      hl.exec_cmd("${systemctl} --user set-environment QT_QPA_PLATFORMTHEME=kde 'QT_QPA_PLATFORM=wayland;xcb' GDK_BACKEND=wayland,x11 XDG_MENU_PREFIX=plasma- XDG_CURRENT_DESKTOP=Hyprland XDG_SESSION_TYPE=wayland XDG_SESSION_DESKTOP=Hyprland")
-      hl.exec_cmd("${systemctl} --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_SESSION_DESKTOP")
-      hl.exec_cmd("${dbusUpdate} --systemd WAYLAND_DISPLAY QT_QPA_PLATFORMTHEME=kde 'QT_QPA_PLATFORM=wayland;xcb' GDK_BACKEND=wayland,x11 XDG_MENU_PREFIX=plasma- XDG_CURRENT_DESKTOP=Hyprland XDG_SESSION_TYPE=wayland XDG_SESSION_DESKTOP=Hyprland")
-      hl.exec_cmd("${systemctl} --user restart xdg-desktop-portal-hyprland.service")
 
       -- Sync toolkit settings for native apps without repainting apps during startup.
       hl.exec_cmd("CAELESTIA_SYNC_NOTIFY=0 caelestia-sync-gtk-settings")
@@ -565,6 +560,7 @@ in
     with pkgs;
     [
       caelestiaSyncGtkSettings
+      fixHyprlandPortal
       hyprmonProfile
       adw-gtk3
       darkly
@@ -606,6 +602,7 @@ in
     ) pkgs.nerd-fonts.jetbrains-mono;
 
   xdg.configFile = hyprlandModuleConfig // {
+    "uwsm/env".source = "${config.home.sessionVariablesPackage}/etc/profile.d/hm-session-vars.sh";
     "hypr/hyprland/env.lua".text = patchedEnv;
     "hypr/hyprland/execs.lua".text = patchedExecs;
     "hypr/hyprland/keybinds.lua".text = patchedKeybinds;
@@ -692,6 +689,9 @@ in
     QT_QPA_PLATFORM = lib.mkDefault "wayland;xcb";
     GDK_BACKEND = lib.mkDefault "wayland,x11";
     XDG_MENU_PREFIX = lib.mkDefault "plasma-";
+    XDG_CURRENT_DESKTOP = lib.mkDefault "Hyprland";
+    XDG_SESSION_TYPE = lib.mkDefault "wayland";
+    XDG_SESSION_DESKTOP = lib.mkDefault "Hyprland";
   };
 
   systemd.user.services.vicinae = {
@@ -812,6 +812,7 @@ in
     package = null;
     portalPackage = null;
     configType = "lua";
+    systemd.enable = false;
     settings = { };
     extraConfig = lib.readFile "${dots}/hypr/hyprland.lua";
   };
