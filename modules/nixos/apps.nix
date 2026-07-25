@@ -47,7 +47,9 @@ in
       libva-utils
       yt-dlp
       obs-studio
+      kooha
       moonlight-qt
+      localsend
       karere
       tor-browser
       veracrypt
