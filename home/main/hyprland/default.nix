@@ -594,6 +594,7 @@ in
       ripgrep
       swappy
       trash-cli
+      vicinae
       wl-clipboard
       xdg-user-dirs
       thunar
@@ -660,6 +661,7 @@ in
         require("workspaces")
       end
 
+      hl.bind("SUPER + Space", hl.dsp.exec_cmd("${lib.getExe pkgs.vicinae} toggle"))
       hl.bind("SUPER + P", hl.dsp.exec_cmd("nwg-displays"))
       hl.bind("SUPER + SHIFT + 1", hl.dsp.exec_cmd("hyprmon-profile internal"))
       hl.bind("SUPER + SHIFT + 2", hl.dsp.exec_cmd("hyprmon-profile external"))
@@ -690,6 +692,32 @@ in
     QT_QPA_PLATFORM = lib.mkDefault "wayland;xcb";
     GDK_BACKEND = lib.mkDefault "wayland,x11";
     XDG_MENU_PREFIX = lib.mkDefault "plasma-";
+  };
+
+  systemd.user.services.vicinae = {
+    Unit = {
+      Description = "Vicinae launcher server";
+      After = [ "graphical-session.target" ];
+      PartOf = [ "graphical-session.target" ];
+    };
+
+    Service = {
+      ExecStartPre = "${lib.getExe' pkgs.coreutils "sleep"} 2";
+      ExecStart = "${lib.getExe pkgs.vicinae} server";
+      Restart = "on-failure";
+      RestartSec = "2s";
+      Environment = [
+        "QT_QPA_PLATFORMTHEME=kde"
+        "QT_QPA_PLATFORM=wayland;xcb"
+        "GDK_BACKEND=wayland,x11"
+        "XDG_MENU_PREFIX=plasma-"
+        "XDG_CURRENT_DESKTOP=Hyprland"
+        "XDG_SESSION_TYPE=wayland"
+        "XDG_SESSION_DESKTOP=Hyprland"
+      ];
+    };
+
+    Install.WantedBy = [ "graphical-session.target" ];
   };
 
   home.activation.clearOldHyprShell = lib.hm.dag.entryBefore [ "linkGeneration" ] ''
