@@ -30,7 +30,7 @@
 
   # This FA507NU is hybrid graphics: AMD Radeon iGPU plus RTX 4050 Laptop dGPU.
   # Confirm bus IDs after install with: lspci | grep -E "VGA|3D|Display"
-  boot.kernelPackages = pkgs.linuxPackages_7_0;
+  boot.kernelPackages = pkgs.linuxPackages_6_12;
   hardware.nvidia.prime = {
     amdgpuBusId = gpuBusIds.amdgpu;
     nvidiaBusId = gpuBusIds.nvidia;
