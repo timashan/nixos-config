@@ -529,9 +529,16 @@ let
       [ ''hl.env("QT_QPA_PLATFORMTHEME", "kde")'' ]
       (lib.readFile "${dots}/hypr/hyprland/env.lua");
 
+  # Caelestia evaluates resize_active_window() at bind time (often nil). Defer to keypress.
   patchedKeybinds =
     builtins.replaceStrings
-      [ ''hl.bind(vars.kbWindowFullscreen, hl.dsp.window.fullscreen({ mode = "fullscreen" }))'' ]
+      [
+        ''hl.bind(vars.kbWindowFullscreen, hl.dsp.window.fullscreen({ mode = "fullscreen" }))''
+        "hl.dsp.window.resize(fn.resize_active_window(-10, 0))"
+        "hl.dsp.window.resize(fn.resize_active_window(10, 0))"
+        "hl.dsp.window.resize(fn.resize_active_window(0, -10))"
+        "hl.dsp.window.resize(fn.resize_active_window(0, 10))"
+      ]
       [
         ''
           hl.bind(vars.kbWindowFullscreen, function()
@@ -551,6 +558,10 @@ let
               hl.dispatch(hl.dsp.window.fullscreen({ mode = "fullscreen" }))
           end)
         ''
+        "function() local a = fn.resize_active_window(-10, 0); if a then hl.dispatch(hl.dsp.window.resize(a)) end end"
+        "function() local a = fn.resize_active_window(10, 0); if a then hl.dispatch(hl.dsp.window.resize(a)) end end"
+        "function() local a = fn.resize_active_window(0, -10); if a then hl.dispatch(hl.dsp.window.resize(a)) end end"
+        "function() local a = fn.resize_active_window(0, 10); if a then hl.dispatch(hl.dsp.window.resize(a)) end end"
       ]
       (lib.readFile "${dots}/hypr/hyprland/keybinds.lua");
 
