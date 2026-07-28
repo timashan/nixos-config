@@ -1,10 +1,16 @@
-{ lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
-  sddmKcminputrc = pkgs.writeText "sddm-kcminputrc" ''
-    [Keyboard]
-    NumLock=0
-  '';
+  loginSessions = pkgs.symlinkJoin {
+    name = "tuigreet-sessions";
+    paths = config.services.displayManager.sessionPackages;
+  };
+
   # Screencast/screenshot need Hyprland; Settings must stay on KDE so
   # Electron/Codex pick up live color-scheme changes from Caelestia.
   hyprlandPortalConfig = {
@@ -28,18 +34,13 @@ in
     variant = "";
   };
 
-  services.displayManager.sddm = {
+  services.greetd = {
     enable = true;
-    wayland.enable = true;
-    # Wayland SDDM uses KWin, which reads /var/lib/sddm/.config/kcminputrc for Num Lock.
-    # sddm.conf Numlock=on and xkb num:alwayson only fight that and cause ON→OFF→ON flicker.
-    settings.General.GreeterEnvironment = "QT_WAYLAND_SHELL_INTEGRATION=layer-shell";
+    settings.default_session = {
+      command = "${pkgs.tuigreet}/bin/tuigreet --time --remember --remember-user-session --sessions ${loginSessions}/share/wayland-sessions --xsessions ${loginSessions}/share/xsessions";
+      user = "greeter";
+    };
   };
-
-  systemd.tmpfiles.rules = [
-    "d /var/lib/sddm/.config 0755 sddm sddm -"
-    "L+ /var/lib/sddm/.config/kcminputrc - - - - ${sddmKcminputrc}"
-  ];
   services.desktopManager.plasma6.enable = true;
 
   xdg.portal = {
