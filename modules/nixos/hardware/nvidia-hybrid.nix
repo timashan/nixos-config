@@ -22,14 +22,20 @@
 
   hardware.nvidia = {
     modesetting.enable = true;
-    open = true;
-    package = config.boot.kernelPackages.nvidiaPackages.stable;
+    # The open kernel module with fine-grained runtime PM has repeatedly
+    # soft-locked in nvidia-modeset after s2idle resume on this FA507NU.
+    open = false;
+    # 595.71.05 still soft-locks in nvidia-modeset after resume/fullscreen.
+    # Keep proprietary PRIME offload, but use the older 580 branch and avoid GSP.
+    package = config.boot.kernelPackages.nvidiaPackages.legacy_580;
+    gsp.enable = false;
     nvidiaSettings = true;
 
-    # Keeps suspend/resume and offload power behavior saner on modern laptops.
+    # Keep NVIDIA's suspend/resume hooks, but avoid aggressive dGPU runtime
+    # power switching while preserving PRIME offload.
     powerManagement.enable = true;
-    powerManagement.finegrained = true;
-    dynamicBoost.enable = true;
+    powerManagement.finegrained = false;
+    dynamicBoost.enable = false;
 
     prime = {
       offload.enable = true;
