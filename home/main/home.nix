@@ -175,8 +175,6 @@ in
     EDITOR = "nvim";
     VISUAL = "nvim";
     BROWSER = "zen-beta";
-    ANDROID_HOME = "${config.home.homeDirectory}/Android/Sdk";
-    ANDROID_SDK_ROOT = "${config.home.homeDirectory}/Android/Sdk";
     XDG_MENU_PREFIX = "plasma-";
   };
 

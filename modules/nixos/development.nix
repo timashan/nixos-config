@@ -13,14 +13,55 @@ let
       ln -s "$out/bin/cursor-agent" "$out/bin/agent"
     '';
   };
+  androidComposition = pkgs.androidenv.composeAndroidPackages {
+    platformVersions = [ "36.1" ];
+    buildToolsVersions = [ "36.1.0" ];
+    includeEmulator = true;
+    includeSystemImages = true;
+    systemImageTypes = [ "google_apis_playstore" ];
+    abiVersions = [ "x86_64" ];
+    includeSources = true;
+    includeNDK = true;
+    extraLicenses = [
+      "android-sdk-preview-license"
+    ];
+  };
+  androidSdk = androidComposition.androidsdk;
+  androidAvdHome = "/home/${username}/.config/.android/avd";
+  androidSdkTools = pkgs.symlinkJoin {
+    name = "android-sdk-tools-with-nixos-paths";
+    paths = [ androidSdk ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      for tool in emulator avdmanager sdkmanager adb; do
+        if [ -x "$out/bin/$tool" ]; then
+          wrapProgram "$out/bin/$tool" \
+            --set ANDROID_HOME "${androidSdk}/libexec/android-sdk" \
+            --set ANDROID_SDK_ROOT "${androidSdk}/libexec/android-sdk" \
+            --set ANDROID_NDK_ROOT "${androidSdk}/libexec/android-sdk/ndk-bundle" \
+            --set ANDROID_AVD_HOME "${androidAvdHome}"
+        fi
+      done
+    '';
+  };
+  androidStudio = pkgs.symlinkJoin {
+    name = "android-studio-with-nixos-sdk";
+    paths = [ (pkgs.android-studio.withSdk androidSdk) ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram "$out/bin/android-studio" \
+        --set ANDROID_HOME "${androidSdk}/libexec/android-sdk" \
+        --set ANDROID_SDK_ROOT "${androidSdk}/libexec/android-sdk" \
+        --set ANDROID_NDK_ROOT "${androidSdk}/libexec/android-sdk/ndk-bundle" \
+        --set ANDROID_AVD_HOME "${androidAvdHome}"
+    '';
+  };
 in
 {
   programs.java = {
     enable = true;
     package = pkgs.jdk21;
   };
-
-  #   programs.adb.enable = true;
 
   virtualisation.docker = {
     enable = true;
@@ -40,9 +81,11 @@ in
 
   environment.sessionVariables = {
     JAVA_HOME = "${pkgs.jdk21.home}";
-    ANDROID_HOME = "/home/${username}/Android/Sdk";
-    ANDROID_SDK_ROOT = "/home/${username}/Android/Sdk";
+    ANDROID_HOME = "${androidSdk}/libexec/android-sdk";
+    ANDROID_NDK_ROOT = "${androidSdk}/libexec/android-sdk/ndk-bundle";
+    ANDROID_AVD_HOME = androidAvdHome;
     BROWSER = "zen-beta";
+    CHROME_EXECUTABLE = "${pkgs.chromium}/bin/chromium";
   };
 
   environment.systemPackages =
@@ -76,6 +119,7 @@ in
       openssl
       docker-compose
       flutter
+      androidSdkTools
       android-tools
       jdk21
       devenv
@@ -88,6 +132,6 @@ in
     ++ lib.optional (pkgs ? vscode) pkgs.vscode
     ++ lib.optional (pkgs ? code-cursor) pkgs.code-cursor
     ++ lib.optional (pkgs ? cursor-cli) cursorCli
-    ++ lib.optional (pkgs ? android-studio) pkgs.android-studio
+    ++ lib.optional (pkgs ? android-studio) androidStudio
     ++ lib.optional (pkgs ? gemini-cli) pkgs.gemini-cli;
 }

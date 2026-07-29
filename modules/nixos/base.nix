@@ -26,6 +26,7 @@
 
   # Needed for NVIDIA, Steam, Discord, VS Code, Cursor, and Android Studio.
   nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.android_sdk.accept_license = true;
   # Codex Desktop (and some Electron apps) depend on EOL Electron builds.
   nixpkgs.config.permittedInsecurePackages = [
     "electron-39.8.10"
