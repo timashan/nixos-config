@@ -81,6 +81,24 @@ sudo cp /mnt/etc/nixos/hardware-configuration.nix ./hosts/<host>/hardware-config
 Do not run install commands against a disk until you have decided which SSD will
 be erased or preserved.
 
+The `tuf-a15` host has an install-only Disko layout in
+`hosts/tuf-a15/disko.nix`. It keeps the reinstall layout simple:
+
+```text
+ESP   1G      vfat  /boot
+root  rest    ext4  /
+swap  17G     swap
+```
+
+This file is not imported by the normal host configuration, so
+`nixos-rebuild switch --flake /etc/nixos#tuf-a15` does not repartition or format
+the disk. Only run Disko intentionally from an installer or recovery
+environment, after replacing the disk path if needed:
+
+```bash
+sudo nix run github:nix-community/disko -- --mode destroy,format,mount /etc/nixos/hosts/tuf-a15/disko.nix --argstr disk /dev/nvme0n1
+```
+
 ## Quick local setup
 
 For a new machine, the helper script creates a host folder from
