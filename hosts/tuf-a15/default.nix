@@ -36,6 +36,26 @@
     nvidiaBusId = gpuBusIds.nvidia;
   };
 
+  fileSystems."/run/media/${username}/New Volume" = {
+    device = "/dev/disk/by-uuid/EA60D43260D4076B";
+    fsType = "ntfs3";
+    options = [
+      "nofail"
+      "noauto"
+      "x-systemd.automount"
+      "x-systemd.device-timeout=5s"
+      "uid=1000"
+      "gid=100"
+      "umask=0022"
+      "windows_names"
+    ];
+  };
+
+  systemd.tmpfiles.rules = [
+    "d /run/media 0755 root root -"
+    "d /run/media/${username} 0755 ${username} users -"
+  ];
+
   # Set this to the NixOS release used for the first install.
   system.stateVersion = "26.05";
 }
