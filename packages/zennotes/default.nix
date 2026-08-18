@@ -6,11 +6,11 @@
 
 let
   pname = "zennotes";
-  version = "2.18.0";
+  version = "2.29.0";
 
   src = fetchurl {
     url = "https://github.com/ZenNotes/zennotes/releases/download/v${version}/ZenNotes-${version}-linux-x86_64.AppImage";
-    hash = "sha256-DKLdjqWhTtuVQRPttZ6garkGVmCRbXv7g8r5XmctfCA=";
+    hash = "sha256-r8yzd+1CtXwbHvd4pPxYTiMhxbs+WYxOMyp83GM4zjE=";
   };
 
   appimageContents = appimageTools.extractType2 {

@@ -529,35 +529,39 @@ let
       [ ''hl.env("QT_QPA_PLATFORMTHEME", "kde")'' ]
       (lib.readFile "${dots}/hypr/hyprland/env.lua");
 
+  kittyFullscreenAction = ''
+    function()
+        local active = hl.get_active_window()
+        local class = active and string.lower(active.class or active.initial_class or "") or ""
+
+        if class == "kitty" then
+            if active.fullscreen == 0 then
+                hl.dispatch(hl.dsp.exec_cmd(${setKittyPadding "0"}))
+                hl.dispatch(hl.dsp.exec_cmd(${setKittyOpacity "1"}))
+            else
+                hl.dispatch(hl.dsp.exec_cmd(${setKittyPadding kittyPadding}))
+                hl.dispatch(hl.dsp.exec_cmd(${setKittyOpacity "0.78"}))
+            end
+        end
+
+        hl.dispatch(hl.dsp.window.fullscreen({ mode = "fullscreen" }))
+    end
+  '';
+
   # Caelestia evaluates resize_active_window() at bind time (often nil). Defer to keypress.
   patchedKeybinds =
     builtins.replaceStrings
       [
         ''hl.bind(vars.kbWindowFullscreen, hl.dsp.window.fullscreen({ mode = "fullscreen" }))''
+        ''create_bind(vars.kbWindowFullscreen, hl.dsp.window.fullscreen({ mode = "fullscreen" }))''
         "hl.dsp.window.resize(fn.resize_active_window(-10, 0))"
         "hl.dsp.window.resize(fn.resize_active_window(10, 0))"
         "hl.dsp.window.resize(fn.resize_active_window(0, -10))"
         "hl.dsp.window.resize(fn.resize_active_window(0, 10))"
       ]
       [
-        ''
-          hl.bind(vars.kbWindowFullscreen, function()
-              local active = hl.get_active_window()
-              local class = active and string.lower(active.class or active.initial_class or "") or ""
-
-              if class == "kitty" then
-                  if active.fullscreen == 0 then
-                      hl.dispatch(hl.dsp.exec_cmd(${setKittyPadding "0"}))
-                      hl.dispatch(hl.dsp.exec_cmd(${setKittyOpacity "1"}))
-                  else
-                      hl.dispatch(hl.dsp.exec_cmd(${setKittyPadding kittyPadding}))
-                      hl.dispatch(hl.dsp.exec_cmd(${setKittyOpacity "0.78"}))
-                  end
-              end
-
-              hl.dispatch(hl.dsp.window.fullscreen({ mode = "fullscreen" }))
-          end)
-        ''
+        "hl.bind(vars.kbWindowFullscreen, ${kittyFullscreenAction})"
+        "create_bind(vars.kbWindowFullscreen, ${kittyFullscreenAction})"
         "function() local a = fn.resize_active_window(-10, 0); if a then hl.dispatch(hl.dsp.window.resize(a)) end end"
         "function() local a = fn.resize_active_window(10, 0); if a then hl.dispatch(hl.dsp.window.resize(a)) end end"
         "function() local a = fn.resize_active_window(0, -10); if a then hl.dispatch(hl.dsp.window.resize(a)) end end"
@@ -619,6 +623,7 @@ in
     "hypr/hyprland/keybinds.lua".text = patchedKeybinds;
     "hypr/scheme" = cfgDir "${dots}/hypr/scheme";
     "hypr/variables.lua" = cfg "${dots}/hypr/variables.lua";
+    "caelestia/utils" = cfgDir "${dots}/hypr/utils";
 
     "fish/config.fish".text =
       (builtins.replaceStrings [ "zoxide init fish --cmd cd" ] [ "zoxide init fish --cmd z" ] (
