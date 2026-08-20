@@ -97,6 +97,15 @@
         gpu-screen-recorder-notification = gpuScreenRecorderNotification;
       };
       codexCli = codex-cli-nix.packages.${system}.default;
+      overlays = [
+        (final: prev: {
+          foot = prev.foot.overrideAttrs (old: {
+            patches = (old.patches or [ ]) ++ [
+              ./patches/foot-zero-padding-fullscreen.patch
+            ];
+          });
+        })
+      ];
     in
     {
       formatter.${system} = pkgs.writeShellApplication {
@@ -136,6 +145,8 @@
 
         modules = [
           hostPath
+
+          { nixpkgs.overlays = overlays; }
 
           ./modules/nixos/gpu-screen-recorder-ui.nix
           {

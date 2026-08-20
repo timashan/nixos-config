@@ -1,0 +1,20 @@
+diff --git a/render.c b/render.c
+index 7d5e8ed..69d6c52 100644
+--- a/render.c
++++ b/render.c
+@@ -4623,10 +4623,11 @@ render_resize(struct terminal *term, int width, int height, enum resize_options
+     /* Padding */
+     const int max_pad_x = (width - min_width) / 2;
+     const int max_pad_y = (height - min_height) / 2;
+-    const int pad_left  = min(max_pad_x, scale * term->conf->pad_left);
+-    const int pad_right = min(max_pad_x, scale * term->conf->pad_right);
+-    const int pad_top   = min(max_pad_y, scale * term->conf->pad_top);
+-    const int pad_bottom= min(max_pad_y, scale * term->conf->pad_bottom);
++    const bool zero_padding = term->window->is_fullscreen;
++    const int pad_left  = zero_padding ? 0 : min(max_pad_x, scale * term->conf->pad_left);
++    const int pad_right = zero_padding ? 0 : min(max_pad_x, scale * term->conf->pad_right);
++    const int pad_top   = zero_padding ? 0 : min(max_pad_y, scale * term->conf->pad_top);
++    const int pad_bottom= zero_padding ? 0 : min(max_pad_y, scale * term->conf->pad_bottom);
+ 
+     if (is_floating &&
+         (opts & RESIZE_BY_CELLS) &&
