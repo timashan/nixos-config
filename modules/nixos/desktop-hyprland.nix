@@ -1,6 +1,36 @@
 { pkgs, ... }:
 
+let
+  coverThumbnailer = pkgs.callPackage ../../packages/cover-thumbnailer { };
+in
 {
+  # Folder thumbnails are useful in the file view, but make the compact
+  # navigation icons hard to recognize. Keep them out of the side pane and
+  # location entry while retaining them everywhere else.
+  nixpkgs.overlays = [
+    (_final: previous: {
+      # Patch the underlying package so programs.thunar can wrap it with
+      # plugins without discarding the patch.
+      thunar-unwrapped = previous.thunar-unwrapped.overrideAttrs (oldAttrs: {
+        patches = (oldAttrs.patches or [ ]) ++ [
+          ../../packages/thunar/navigation-icons.patch
+        ];
+      });
+    })
+  ];
+
+  # Thunar needs its NixOS module for D-Bus, Xfconf, and plugin registration.
+  programs.thunar = {
+    enable = true;
+    plugins = with pkgs; [
+      thunar-archive-plugin
+      thunar-volman
+    ];
+  };
+  # File previews and userspace mounting for Thunar.
+  services.tumbler.enable = true;
+  services.gvfs.enable = true;
+
   # Hyprland session at SDDM alongside Plasma (primary).
   programs.hyprland = {
     enable = true;
@@ -29,9 +59,12 @@
     ddcutil
     eza
     fastfetch
+    file-roller
     fish
     foot
+    coverThumbnailer
     fuzzel
+    ffmpegthumbnailer
     glib
     gnome-keyring
     grim
@@ -53,7 +86,6 @@
     wl-clipboard
     wireplumber
     xdg-user-dirs
-    thunar
     warp-terminal
     ydotool
     zoxide

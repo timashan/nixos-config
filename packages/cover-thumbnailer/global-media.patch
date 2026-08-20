@@ -1,0 +1,188 @@
+--- a/cover-thumbnailer.py
++++ b/cover-thumbnailer.py
+@@ -50,7 +50,9 @@
+ 
+ 
+ import re
++import subprocess
+ import sys
++import tempfile
+ import os.path
+ from gi.repository import Gio
+ 
+@@ -84,6 +86,10 @@
+         ".psd", ".PSD", #Adobe Photosop format (only version 2.5 and 3.0)
+         ]
+ 
++FFMPEG_THUMBNAILER = "@ffmpegthumbnailer@"
++PDFTOPPM = "@pdftoppm@"
++MAX_PREVIEW_CANDIDATES = 32
++
+ #==============================================================================
+ 
+ 
+@@ -214,22 +220,58 @@
+ 
+     Generate thumbnails for all kind of folders
+     """
+-    def __init__(self, img_paths):
++    def __init__(self, media_paths):
+         """The constructor.
+ 
+         Argument:
+-          * img_paths -- a list of picture path
++          * media_paths -- a list of image, video, or PDF paths
+         """
+         self.img = []
+-        for path in img_paths:
++        for path in media_paths:
++            if len(self.img) >= 4:
++                break
+             try:
+-                img = Image.open(path).convert("RGBA")
+-            except IOError:
++                img = self.load_media_preview(path)
++            except (OSError, subprocess.SubprocessError):
+                 print("E: [%s:Thumb.__init__] Can't open '%s'." % (__file__, path))
+             else:
+                 self.img.append(img)
+         self.thumb = None
+ 
++    @staticmethod
++    def load_media_preview(path):
++        """Load an image or extract a representative frame/page."""
++        content_type, _uncertain = Gio.content_type_guess(path, None)
++
++        if content_type and content_type.startswith("video/"):
++            with tempfile.TemporaryDirectory(prefix="cover-thumbnailer-") as temp_dir:
++                output_path = os.path.join(temp_dir, "video.png")
++                subprocess.run(
++                        [FFMPEG_THUMBNAILER, "-i", path, "-o", output_path,
++                         "-s", "512", "-q", "8"],
++                        check=True,
++                        stdout=subprocess.DEVNULL,
++                        stderr=subprocess.DEVNULL,
++                        )
++                with Image.open(output_path) as image:
++                    return image.convert("RGBA")
++
++        if content_type == "application/pdf":
++            with tempfile.TemporaryDirectory(prefix="cover-thumbnailer-") as temp_dir:
++                output_prefix = os.path.join(temp_dir, "pdf")
++                subprocess.run(
++                        [PDFTOPPM, "-f", "1", "-l", "1", "-singlefile",
++                         "-scale-to", "512", "-png", path, output_prefix],
++                        check=True,
++                        stdout=subprocess.DEVNULL,
++                        stderr=subprocess.DEVNULL,
++                        )
++                with Image.open(output_prefix + ".png") as image:
++                    return image.convert("RGBA")
++
++        with Image.open(path) as image:
++            return image.convert("RGBA")
++
+     def thumbnailize(self, image, twidth=128, theight=128, crop=True):
+         """ Make thumbnail.
+ 
+@@ -454,6 +496,31 @@
+     return pictures
+ 
+ 
++def search_previewable_files(path):
++    """Return direct, non-hidden image, video, and PDF children."""
++    previewable = []
++    for file_name in sorted(os.listdir(path), key=str.casefold):
++        if file_name.startswith("."):
++            continue
++
++        file_path = os.path.join(path, file_name)
++        if not os.path.isfile(file_path) or os.path.islink(file_path):
++            continue
++
++        content_type, _uncertain = Gio.content_type_guess(file_path, None)
++        if content_type and (
++                content_type.startswith("image/")
++                or content_type.startswith("video/")
++                or content_type == "application/pdf"
++                ):
++            previewable.append(file_path)
++
++        if len(previewable) >= MAX_PREVIEW_CANDIDATES:
++            break
++
++    return previewable
++
++
+ def search_pictures_recursiv(path):
+     """ Search recursively for pictures in the folder
+ 
+@@ -538,60 +605,13 @@
+     elif CONF['ignored_dotted'] and re.match(r".*/\..*", INPUT_FOLDER):
+         sys.exit(0)
+ 
+-    #Music folders
+-    elif CONF['music_enabled'] and match_path(INPUT_FOLDER, CONF['music_paths']):
+-        covers = search_cover(INPUT_FOLDER)
+-        if len(covers) == 0:
+-            covers = search_pictures(INPUT_FOLDER)
+-            if len(covers) == 0:
+-                covers = search_pictures_recursiv(INPUT_FOLDER)
+-                if len(covers) == 0 and not CONF['music_keepdefaulticon']:
+-                    covers = [CONF['music_defaultimg']]
+-        if len(covers) > 0:
+-            if len(covers) == 1 or not CONF['music_makemosaic']:
+-                thumbnail = Thumb([covers[0], CONF['music_defaultimg']])
+-                thumbnail.music_thumbnail(
+-                        CONF['music_bg'],
+-                        CONF['music_fg'],
+-                        CONF['music_cropimg']
+-                        )
+-                thumbnail.save_thumb(OUTPUT_FILE, "PNG")
+-            else:
+-                thumbnail = Thumb(covers)
+-                thumbnail.music_thumbnail_mosaic(
+-                        CONF['music_bg'],
+-                        CONF['music_fg'],
+-                        CONF['music_cropimg']
+-                        )
+-                thumbnail.save_thumb(OUTPUT_FILE, "PNG")
+-        elif not CONF['music_keepdefaulticon']:
+-            thumbnail = Thumb([CONF['music_defaultimg']])
+-            thumbnail.music_thumbnail(
+-                    CONF['music_bg'],
+-                    CONF['music_fg'],
+-                    CONF['music_cropimg']
+-                    )
+-            thumbnail.save_thumb(OUTPUT_FILE, "PNG")
+-
+-    #Picture folders
+-    elif CONF['pictures_enabled'] and match_path(INPUT_FOLDER, CONF['pictures_paths']):
+-        picture_list = search_cover(INPUT_FOLDER)
+-        if len(picture_list) == 0:
+-            picture_list = search_pictures(INPUT_FOLDER)
+-            if len(picture_list) == 0:
+-                picture_list = search_pictures_recursiv(INPUT_FOLDER)
+-        thumbnail = Thumb(picture_list)
+-        thumbnail.pictures_thumbnail(
+-                CONF['pictures_bg'],
+-                CONF['pictures_fg'],
+-                CONF['pictures_maxthumbs']
+-                )
+-        thumbnail.save_thumb(OUTPUT_FILE, "PNG")
+-
+-    #Other folders
++    # Apply the same direct-child preview rule to every local folder.
+     elif CONF['other_enabled']:
+-        covers = search_cover(INPUT_FOLDER)
+-        if len(covers) == 1:
+-            thumbnail = Thumb(covers)
+-            thumbnail.other_thumbnail(CONF['other_fg'])
++        thumbnail = Thumb(search_previewable_files(INPUT_FOLDER))
++        if len(thumbnail.img) > 0:
++            thumbnail.pictures_thumbnail(
++                    CONF['pictures_bg'],
++                    CONF['pictures_fg'],
++                    4
++                    )
+             thumbnail.save_thumb(OUTPUT_FILE, "PNG")

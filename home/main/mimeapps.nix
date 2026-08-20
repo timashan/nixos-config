@@ -51,7 +51,7 @@ let
     "application/pdf" = [ "okularApplication_pdf.desktop" ];
     "application/json" = [ "micro.desktop" ];
     "application/x-shellscript" = [ "micro.desktop" ];
-    "inode/directory" = [ "org.kde.dolphin.desktop" ];
+    "inode/directory" = [ "thunar.desktop" ];
     "text/markdown" = [ "micro.desktop" ];
     "text/plain" = [ "micro.desktop" ];
     "text/x-csrc" = [ "micro.desktop" ];

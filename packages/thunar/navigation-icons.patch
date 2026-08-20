@@ -1,0 +1,251 @@
+diff --git a/thunar/thunar-action-manager.c b/thunar/thunar-action-manager.c
+index 8dc8260ec..1bf373ffb 100644
+--- a/thunar/thunar-action-manager.c
++++ b/thunar/thunar-action-manager.c
+@@ -2945,6 +2945,7 @@ thunar_action_manager_create_document_submenu_templates (ThunarActionManager *ac
+                                                  THUNAR_FILE_ICON_STATE_DEFAULT,
+                                                  16,
+                                                  scale_factor,
++                                                 TRUE,
+                                                  FALSE,
+                                                  NULL);
+       surface = gdk_cairo_surface_create_from_pixbuf (icon, scale_factor, NULL);
+diff --git a/thunar/thunar-dialogs.c b/thunar/thunar-dialogs.c
+index 39697aa85..097013329 100644
+--- a/thunar/thunar-dialogs.c
++++ b/thunar/thunar-dialogs.c
+@@ -284,7 +284,7 @@ thunar_dialogs_show_rename_file (gpointer               parent,
+ 
+   icon_theme = gtk_icon_theme_get_for_screen (gtk_widget_get_screen (dialog));
+   icon_factory = thunar_icon_factory_get_for_icon_theme (icon_theme);
+-  icon = thunar_icon_factory_load_file_icon (icon_factory, file, THUNAR_FILE_ICON_STATE_DEFAULT, 48, scale_factor, FALSE, NULL);
++  icon = thunar_icon_factory_load_file_icon (icon_factory, file, THUNAR_FILE_ICON_STATE_DEFAULT, 48, scale_factor, TRUE, FALSE, NULL);
+   surface = gdk_cairo_surface_create_from_pixbuf (icon, scale_factor, NULL);
+   g_object_unref (G_OBJECT (icon_factory));
+ 
+@@ -735,7 +735,7 @@ thunar_dialog_image_redraw (GtkWidget          *image,
+   icon_factory = thunar_icon_factory_get_for_icon_theme (icon_theme);
+ 
+   scale_factor = gtk_widget_get_scale_factor (image);
+-  icon = thunar_icon_factory_load_file_icon (icon_factory, file, THUNAR_FILE_ICON_STATE_DEFAULT, 48, scale_factor, FALSE, NULL);
++  icon = thunar_icon_factory_load_file_icon (icon_factory, file, THUNAR_FILE_ICON_STATE_DEFAULT, 48, scale_factor, TRUE, FALSE, NULL);
+   surface = gdk_cairo_surface_create_from_pixbuf (icon, scale_factor, NULL);
+   gtk_image_set_from_surface (GTK_IMAGE (image), surface);
+ 
+@@ -911,7 +911,7 @@ thunar_dialogs_show_job_ask_replace (GtkWindow  *parent,
+   /* next row */
+   row++;
+ 
+-  icon = thunar_icon_factory_load_file_icon (icon_factory, dst_file, THUNAR_FILE_ICON_STATE_DEFAULT, 48, scale_factor, FALSE, NULL);
++  icon = thunar_icon_factory_load_file_icon (icon_factory, dst_file, THUNAR_FILE_ICON_STATE_DEFAULT, 48, scale_factor, TRUE, FALSE, NULL);
+   surface = gdk_cairo_surface_create_from_pixbuf (icon, scale_factor, NULL);
+   dst_image = gtk_image_new_from_surface (surface);
+   gtk_widget_set_margin_start (GTK_WIDGET (dst_image), 6);
+@@ -961,7 +961,7 @@ thunar_dialogs_show_job_ask_replace (GtkWindow  *parent,
+   /* next row */
+   row++;
+ 
+-  icon = thunar_icon_factory_load_file_icon (icon_factory, src_file, THUNAR_FILE_ICON_STATE_DEFAULT, 48, scale_factor, FALSE, NULL);
++  icon = thunar_icon_factory_load_file_icon (icon_factory, src_file, THUNAR_FILE_ICON_STATE_DEFAULT, 48, scale_factor, TRUE, FALSE, NULL);
+   surface = gdk_cairo_surface_create_from_pixbuf (icon, scale_factor, NULL);
+   src_image = gtk_image_new_from_surface (surface);
+   gtk_widget_set_margin_start (GTK_WIDGET (src_image), 6);
+diff --git a/thunar/thunar-history.c b/thunar/thunar-history.c
+index 5e32213bd..8221b4eff 100644
+--- a/thunar/thunar-history.c
++++ b/thunar/thunar-history.c
+@@ -582,7 +582,7 @@ thunar_history_show_menu (ThunarHistory        *history,
+         {
+           /* load the icon for the file */
+           icon = thunar_icon_factory_load_file_icon (icon_factory, file, THUNAR_FILE_ICON_STATE_DEFAULT, 16,
+-                                                     scale_factor, FALSE, NULL);
++                                                     scale_factor, TRUE, FALSE, NULL);
+           if (icon != NULL)
+             {
+               /* setup the image for the file */
+diff --git a/thunar/thunar-icon-factory.c b/thunar/thunar-icon-factory.c
+index 5a5b785f3..8b13c6d59 100644
+--- a/thunar/thunar-icon-factory.c
++++ b/thunar/thunar-icon-factory.c
+@@ -160,6 +160,7 @@ typedef struct
+   guint                stamp;
+   gboolean             thumbnail_draw_frames;
+   gboolean             symbolic;
++  gboolean             use_thumbnail;
+   GdkPixbuf           *icon;
+ } ThunarIconStore;
+ 
+@@ -956,6 +957,7 @@ thunar_icon_factory_load_icon (ThunarIconFactory *factory,
+  * @icon_state   : the desired icon state.
+  * @icon_size    : the desired icon size.
+  * @scale_factor : the UI scale factor.
++ * @use_thumbnail: whether to load a thumbnail when one is available.
+  * @symbolic     : load the symbolic version of the icon.
+  * @context      : a #GtkStyleContext instance, can be %NULL.
+  *
+@@ -973,6 +975,7 @@ thunar_icon_factory_load_file_icon (ThunarIconFactory  *factory,
+                                     ThunarFileIconState icon_state,
+                                     gint                icon_size,
+                                     gint                scale_factor,
++                                    gboolean            use_thumbnail,
+                                     gboolean            symbolic,
+                                     GtkStyleContext    *context)
+ {
+@@ -997,7 +1000,8 @@ thunar_icon_factory_load_file_icon (ThunarIconFactory  *factory,
+       && store->stamp == factory->theme_stamp
+       && store->thumbnail_draw_frames == factory->thumbnail_draw_frames
+       && store->thumb_state == thunar_file_get_thumb_state (file, thunar_icon_size_to_thumbnail_size (icon_size * scale_factor))
+-      && store->symbolic == symbolic)
++      && store->symbolic == symbolic
++      && store->use_thumbnail == use_thumbnail)
+     {
+       return g_object_ref (store->icon);
+     }
+@@ -1014,7 +1018,7 @@ thunar_icon_factory_load_file_icon (ThunarIconFactory  *factory,
+     }
+ 
+   /* check if thumbnails are enabled and we can display a thumbnail for the item */
+-  if (thunar_icon_factory_get_show_thumbnail (factory, file))
++  if (use_thumbnail && thunar_icon_factory_get_show_thumbnail (factory, file))
+     {
+       /* determine the preview icon first */
+       gicon = thunar_file_get_preview_icon (file);
+@@ -1102,6 +1106,7 @@ thunar_icon_factory_load_file_icon (ThunarIconFactory  *factory,
+       store->thumbnail_draw_frames = factory->thumbnail_draw_frames;
+       store->thumb_state = thunar_file_get_thumb_state (file, thunar_icon_size_to_thumbnail_size (icon_size * scale_factor));
+       store->symbolic = symbolic;
++      store->use_thumbnail = use_thumbnail;
+       store->icon = g_object_ref (icon);
+ 
+       g_object_set_qdata_full (G_OBJECT (file), thunar_icon_factory_store_quark,
+diff --git a/thunar/thunar-icon-factory.h b/thunar/thunar-icon-factory.h
+index 90651d967..b9d64dcaf 100644
+--- a/thunar/thunar-icon-factory.h
++++ b/thunar/thunar-icon-factory.h
+@@ -63,6 +63,7 @@ thunar_icon_factory_load_file_icon (ThunarIconFactory  *factory,
+                                     ThunarFileIconState icon_state,
+                                     gint                icon_size,
+                                     gint                scale_factor,
++                                    gboolean            use_thumbnail,
+                                     gboolean            symbolic,
+                                     GtkStyleContext    *context);
+ 
+diff --git a/thunar/thunar-icon-renderer.c b/thunar/thunar-icon-renderer.c
+index 2221682f5..267165b92 100644
+--- a/thunar/thunar-icon-renderer.c
++++ b/thunar/thunar-icon-renderer.c
+@@ -237,6 +237,7 @@ thunar_icon_renderer_class_init (ThunarIconRendererClass *klass)
+ static void
+ thunar_icon_renderer_init (ThunarIconRenderer *icon_renderer)
+ {
++  icon_renderer->use_thumbnail = TRUE;
+   /* use 1px padding */
+   gtk_cell_renderer_set_padding (GTK_CELL_RENDERER (icon_renderer), 1, 1);
+ }
+@@ -544,7 +545,7 @@ thunar_icon_renderer_render (GtkCellRenderer     *renderer,
+   scale_factor = gtk_widget_get_scale_factor (widget);
+ 
+   /* load thumbnail for supported file type */
+-  if (thunar_icon_factory_get_show_thumbnail (icon_factory, icon_renderer->file))
++  if (icon_renderer->use_thumbnail && thunar_icon_factory_get_show_thumbnail (icon_factory, icon_renderer->file))
+     thunar_file_request_thumbnail (icon_renderer->file, thunar_icon_size_to_thumbnail_size (icon_renderer->size * scale_factor));
+ 
+   /* load additional thumbnail for image preview */
+@@ -557,6 +558,7 @@ thunar_icon_renderer_render (GtkCellRenderer     *renderer,
+ 
+   icon = thunar_icon_factory_load_file_icon (icon_factory, icon_renderer->file, icon_state,
+                                              icon_renderer->size, scale_factor,
++                                             icon_renderer->use_thumbnail,
+                                              icon_renderer->use_symbolic_icons, context);
+   if (G_UNLIKELY (icon == NULL))
+     {
+diff --git a/thunar/thunar-icon-renderer.h b/thunar/thunar-icon-renderer.h
+index 15820a75d..dd1cd927c 100644
+--- a/thunar/thunar-icon-renderer.h
++++ b/thunar/thunar-icon-renderer.h
+@@ -54,6 +54,7 @@ struct _ThunarIconRenderer
+   gboolean       highlighting_enabled;
+   gboolean       image_preview_enabled;
+   gboolean       use_symbolic_icons;
++  gboolean       use_thumbnail;
+ };
+ 
+ GType
+diff --git a/thunar/thunar-image.c b/thunar/thunar-image.c
+index d9562d6a6..6f5819a4c 100644
+--- a/thunar/thunar-image.c
++++ b/thunar/thunar-image.c
+@@ -204,7 +204,7 @@ thunar_image_update (ThunarImage *image)
+       scale_factor = gtk_widget_get_scale_factor (GTK_WIDGET (image));
+       icon = thunar_icon_factory_load_file_icon (icon_factory, image->priv->file,
+                                                  THUNAR_FILE_ICON_STATE_DEFAULT, 48,
+-                                                 scale_factor, FALSE, NULL);
++                                                 scale_factor, TRUE, FALSE, NULL);
+ 
+       surface = gdk_cairo_surface_create_from_pixbuf (icon, scale_factor, gtk_widget_get_window (GTK_WIDGET (image)));
+       gtk_image_set_from_surface (GTK_IMAGE (image), surface);
+diff --git a/thunar/thunar-path-entry.c b/thunar/thunar-path-entry.c
+index 767a98374..012b81367 100644
+--- a/thunar/thunar-path-entry.c
++++ b/thunar/thunar-path-entry.c
+@@ -461,6 +461,7 @@ thunar_path_entry_icon_press_event (GtkEntry            *entry,
+                                                  path_entry->current_file,
+                                                  THUNAR_FILE_ICON_STATE_DEFAULT,
+                                                  MAX (size, 16), scale_factor,
++                                                 FALSE,
+                                                  FALSE, NULL);
+       if (G_LIKELY (icon != NULL))
+         {
+@@ -788,6 +789,7 @@ thunar_path_entry_update_icon (ThunarPathEntry *path_entry)
+                                                  path_entry->current_file,
+                                                  THUNAR_FILE_ICON_STATE_DEFAULT,
+                                                  icon_size, scale_factor,
++                                                 FALSE,
+                                                  FALSE, NULL);
+     }
+   else if (G_LIKELY (path_entry->current_folder != NULL))
+@@ -796,6 +798,7 @@ thunar_path_entry_update_icon (ThunarPathEntry *path_entry)
+                                                  path_entry->current_folder,
+                                                  THUNAR_FILE_ICON_STATE_DEFAULT,
+                                                  icon_size, scale_factor,
++                                                 FALSE,
+                                                  FALSE, NULL);
+     }
+ 
+diff --git a/thunar/thunar-shortcuts-view.c b/thunar/thunar-shortcuts-view.c
+index d4b9100fa..6715a614d 100644
+--- a/thunar/thunar-shortcuts-view.c
++++ b/thunar/thunar-shortcuts-view.c
+@@ -376,6 +376,7 @@ thunar_shortcuts_view_init (ThunarShortcutsView *view)
+ 
+   /* allocate the special icon renderer */
+   view->icon_renderer = thunar_shortcuts_icon_renderer_new ();
++  THUNAR_ICON_RENDERER (view->icon_renderer)->use_thumbnail = FALSE;
+   gtk_tree_view_column_pack_start (column, view->icon_renderer, FALSE);
+   gtk_tree_view_column_set_attributes (column, view->icon_renderer,
+                                        "gicon", THUNAR_SHORTCUTS_MODEL_COLUMN_GICON,
+diff --git a/thunar/thunar-standard-view.c b/thunar/thunar-standard-view.c
+index 5ce651a84..9c85e961e 100644
+--- a/thunar/thunar-standard-view.c
++++ b/thunar/thunar-standard-view.c
+@@ -3734,7 +3734,7 @@ thunar_standard_view_drag_begin (GtkWidget          *view,
+           scale_factor = gtk_widget_get_scale_factor (view);
+           icon = thunar_icon_factory_load_file_icon (standard_view->icon_factory, file,
+                                                      THUNAR_FILE_ICON_STATE_DEFAULT, size,
+-                                                     scale_factor, FALSE, NULL);
++                                                     scale_factor, TRUE, FALSE, NULL);
+           if (G_LIKELY (icon != NULL))
+             {
+               surface = gdk_cairo_surface_create_from_pixbuf (icon, scale_factor, gtk_widget_get_window (view));
+diff --git a/thunar/thunar-tree-view.c b/thunar/thunar-tree-view.c
+index a12512d4d..707582b4c 100644
+--- a/thunar/thunar-tree-view.c
++++ b/thunar/thunar-tree-view.c
+@@ -417,6 +417,7 @@ thunar_tree_view_init (ThunarTreeView *view)
+ 
+   /* allocate the special icon renderer */
+   view->icon_renderer = thunar_shortcuts_icon_renderer_new ();
++  THUNAR_ICON_RENDERER (view->icon_renderer)->use_thumbnail = FALSE;
+   gtk_tree_view_column_pack_start (column, view->icon_renderer, FALSE);
+   gtk_tree_view_column_set_attributes (column, view->icon_renderer,
+                                        "file", THUNAR_TREE_MODEL_COLUMN_FILE,

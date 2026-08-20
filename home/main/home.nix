@@ -76,7 +76,7 @@ in
       general.apps = {
         terminal = [ "foot" ];
         audio = [ "pavucontrol" ];
-        explorer = [ "dolphin" ];
+        explorer = [ "thunar" ];
       };
       paths.wallpaperDir = "${config.home.homeDirectory}/Pictures/Wallpapers";
       services.smartScheme = true;

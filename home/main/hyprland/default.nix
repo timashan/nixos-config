@@ -379,6 +379,137 @@ let
         dconf write /org/gnome/desktop/interface/color-scheme "'prefer-$mode'" >/dev/null 2>&1 || true
         dconf write /org/gnome/desktop/interface/icon-theme "'$iconTheme'" >/dev/null 2>&1 || true
 
+        # Caelestia regenerates thunar.css on every theme change. Replace only
+        # that application-specific stylesheet with the original glass rules;
+        # leave the shared gtk.css and every other GTK application untouched.
+        thunarCss="${home}/.config/gtk-3.0/thunar.css"
+        thunarAccent="$(colour primaryDim "$(colour primary 5294e2)")"
+        thunarSurface="$(colour surface "$(colour background 000000)")"
+        thunarSurfaceContainer="$(colour surfaceContainer "$thunarSurface")"
+        thunarText="$(colour onSurface "$(colour text ffffff)")"
+        mkdir -p "$(dirname "$thunarCss")"
+        cat > "$thunarCss" <<EOF
+    @define-color thunar_accent $thunarAccent;
+    @define-color thunar_surface $thunarSurface;
+    @define-color thunar_surface_container $thunarSurfaceContainer;
+    @define-color thunar_text $thunarText;
+
+    /* Keep translucency on Thunar's background surface. A Hyprland window
+       opacity rule would also fade filenames and icons. */
+    window.thunar,
+    window.thunar.background {
+      color: @thunar_text;
+      background-color: alpha(@thunar_surface, 0.78);
+      background-image: none;
+    }
+
+    window.thunar.fullscreen,
+    window.thunar.background.fullscreen {
+      background-color: @thunar_surface;
+    }
+
+    window.thunar * {
+      background-color: transparent;
+      background-image: none;
+    }
+
+    window.thunar headerbar,
+    window.thunar toolbar,
+    window.thunar entry,
+    window.thunar .location-bar {
+      color: @thunar_text;
+      background-color: alpha(@thunar_surface_container, 0.44);
+    }
+
+    window.thunar .location-bar {
+      border: none;
+      box-shadow: none;
+    }
+
+    window.thunar scrolledwindow.sidebar {
+      border-top: none;
+      box-shadow: none;
+    }
+
+    window.thunar statusbar {
+      border-top: none;
+    }
+
+    /* Flatten Thunar's notebook chrome without affecting the split-view
+       divider between notebooks. */
+    window.thunar notebook > header,
+    window.thunar notebook > header > tabs > tab {
+      color: @thunar_text;
+      border: none;
+      box-shadow: none;
+      outline: none;
+    }
+
+    window.thunar notebook > header > tabs > tab:hover {
+      background-color: alpha(@thunar_accent, 0.16);
+    }
+
+    window.thunar notebook > header > tabs > tab:checked {
+      background-color: alpha(@thunar_accent, 0.40);
+    }
+
+    /* The file view uses an inset scrolled-window frame; its bottom edge is
+       the line immediately above the folder-count status text. */
+    window.thunar scrolledwindow.standard-view {
+      border-top: none;
+      border-bottom: none;
+      box-shadow: none;
+    }
+
+    window.thunar entry selection {
+      color: @theme_selected_fg_color;
+      background-color: @theme_selected_bg_color;
+    }
+
+    window.thunar menu,
+    window.thunar popover.background {
+      background-color: @theme_base_color;
+    }
+
+    window.thunar menu menuitem:hover,
+    window.thunar popover modelbutton:hover {
+      background-color: alpha(currentColor, 0.10);
+    }
+
+    window.thunar scrollbar slider {
+      background-color: alpha(currentColor, 0.30);
+    }
+
+    window.thunar scrollbar slider:hover {
+      background-color: alpha(currentColor, 0.50);
+    }
+
+    window.thunar scrollbar slider:active {
+      background-color: alpha(currentColor, 0.70);
+    }
+
+    window.thunar paned > separator {
+      min-width: 2px;
+      min-height: 2px;
+      background-image: image(alpha(currentColor, 0.32));
+      background-size: 2px 2px;
+    }
+
+    /* Hide only the outer sidebar divider. Keep the nested split-view
+       separator visible. */
+    window.thunar > grid > paned > separator {
+      border: none;
+      box-shadow: none;
+      background-color: transparent;
+      background-image: none;
+    }
+
+    window.thunar button:hover,
+    window.thunar .view:selected {
+      background-color: alpha(@thunar_accent, 0.40);
+    }
+    EOF
+
         kdeglobals="${home}/.config/kdeglobals"
         kdeUserSchemes="${home}/.local/share/color-schemes"
         mkdir -p "$kdeUserSchemes"
@@ -555,7 +686,6 @@ in
       vicinae
       wl-clipboard
       xdg-user-dirs
-      thunar
       ydotool
       zoxide
     ]
@@ -595,6 +725,16 @@ in
     "btop" = cfgDir "${dots}/btop";
     "micro" = cfgDir "${dots}/micro";
     "Thunar" = cfgDir "${dots}/thunar";
+    "gtk-3.0/bookmarks" = {
+      force = true;
+      text = ''
+        file://${home}/Documents Documents
+        file://${home}/Downloads Downloads
+        file://${home}/Music Music
+        file://${home}/Pictures Pictures
+        file://${home}/Videos Videos
+      '';
+    };
     "starship.base.toml" = cfg ../starship.toml;
 
     "caelestia/hypr-vars.lua".text = ''
@@ -602,7 +742,7 @@ in
         terminal = "foot",
         browser = "zen",
         editor = "code",
-        fileExplorer = "dolphin",
+        fileExplorer = "thunar",
         kbPinWindow = "SUPER + SHIFT + P",
       }
     '';
@@ -638,6 +778,34 @@ in
           direct_scanout = 0,
         },
       })
+    '';
+  };
+
+  # Tumbler renders up to four direct image, video, or PDF children on every
+  # local Thunar folder icon; folders without previewable media stay unchanged.
+  home.file.".cover-thumbnailer/cover-thumbnailer.conf" = {
+    force = true;
+    text = ''
+      [MUSIC]
+      Enabled = Yes
+      KeepDefaultIcon = No
+      UseGnomeFolder = Yes
+      CropImg = Yes
+      MakeMosaic = Yes
+
+      [PICTURES]
+      Enabled = Yes
+      KeepDefaultIcon = Yes
+      UseGnomeFolder = Yes
+      MaxThumbs = 4
+
+      [OTHER]
+      Enabled = Yes
+
+      [IGNORED]
+      Dotted = Yes
+
+      [NEVERIGNORED]
     '';
   };
 
