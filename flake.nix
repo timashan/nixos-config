@@ -25,12 +25,12 @@
     };
 
     hermes-agent = {
-      url = "github:nousresearch/hermes-agent";
+      url = "github:nousresearch/hermes-agent/v2026.8.31";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     herdr = {
-      url = "github:ogulcancelik/herdr";
+      url = "github:ogulcancelik/herdr/v0.8.2";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

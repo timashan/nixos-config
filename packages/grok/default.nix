@@ -7,11 +7,11 @@
 
 buildNpmPackage rec {
   pname = "grok";
-  version = "1.0.5";
+  version = "1.0.13";
 
   src = ./.;
 
-  npmDepsHash = "sha256-G0bo1KMwbU1mOmU9OjOHYeW82mQ4YgiE3hOvDEcWdl4=";
+  npmDepsHash = "sha256-hYtyswu8PpSBX1l32LtGF6B4bSVdzIueVf589uCG2V0=";
 
   dontNpmBuild = true;
 

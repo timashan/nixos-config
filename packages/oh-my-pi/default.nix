@@ -7,10 +7,10 @@
 
 buildNpmPackage rec {
   pname = "oh-my-pi";
-  version = "17.3.7";
+  version = "18.1.10";
 
   src = ./.;
-  npmDepsHash = "sha256-0PV2lCMb3v/6gfRZsjEibrGLVZDV25yjeenhrH9p93g=";
+  npmDepsHash = "sha256-G7ok0rrCOegtfR0Rzy6RvopFI/E9g/vfesbXJ8FHV0c=";
 
   dontNpmBuild = true;
   npmFlags = [ "--ignore-scripts" ];
