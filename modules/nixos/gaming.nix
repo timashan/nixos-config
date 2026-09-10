@@ -7,6 +7,36 @@
 
 let
   gamescopeBin = "/run/wrappers/bin/gamescope";
+  steamReal = config.programs.steam.package;
+
+  steamScopeWrapper = pkgs.writeShellScript "steam-scope-wrapper" ''
+    real=${lib.escapeShellArg (lib.getExe steamReal)}
+    systemd_run=${lib.escapeShellArg (lib.getExe' pkgs.systemd "systemd-run")}
+    systemctl=${lib.escapeShellArg (lib.getExe' pkgs.systemd "systemctl")}
+    if grep -Fq '/steam.scope' /proc/self/cgroup 2>/dev/null; then
+      exec "$real" "$@"
+    fi
+    if "$systemctl" --user is-active --quiet steam.scope 2>/dev/null; then
+      exec "$real" "$@"
+    fi
+    exec "$systemd_run" --user --scope --unit=steam.scope --collect --quiet -- "$real" "$@"
+  '';
+
+  # PATH wrapper only. programs.steam.package must stay pkgs.steam so the
+  # NixOS module can call steam.override.
+  steamScoped = pkgs.symlinkJoin {
+    name = "steam-scoped";
+    paths = [ steamReal ];
+    passthru = steamReal.passthru or { };
+    postBuild = ''
+      rm -f "$out/bin/steam"
+      cp ${lib.escapeShellArg steamScopeWrapper} "$out/bin/steam"
+    '';
+    meta = (steamReal.meta or { }) // {
+      mainProgram = "steam";
+      priority = -10;
+    };
+  };
 
   steamGamescope = pkgs.writeShellScriptBin "steam-gamescope-session" ''
     set -eu
@@ -54,7 +84,7 @@ let
       --inh-caps -all \
       --ambient-caps -all \
       -- \
-      ${lib.getExe config.programs.steam.package} -tenfoot -pipewire-dmabuf
+      ${lib.getExe steamScoped} -tenfoot -pipewire-dmabuf
   '';
 
   steamGamescopeSession =
@@ -89,6 +119,7 @@ in
   services.displayManager.sessionPackages = [ steamGamescopeSession ];
 
   environment.systemPackages = with pkgs; [
+    (lib.hiPrio steamScoped)
     wineWow64Packages.stable
     winetricks
     protontricks
