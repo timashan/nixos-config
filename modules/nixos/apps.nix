@@ -7,6 +7,7 @@
 
 let
   zennotes = pkgs.callPackage ../../packages/zennotes { };
+  gods-eye-view = pkgs.callPackage ../../packages/gods-eye-view { };
 
   # Resolve ships Qt5 with xcb only. Hyprland/Caelestia launch apps with
   # QT_QPA_PLATFORM=wayland, which aborts in QGuiApplication. Force XWayland
@@ -89,6 +90,7 @@ in
       bitwarden-desktop
       obsidian
       zennotes
+      gods-eye-view
       syncthing
       syncthingtray
       zip
