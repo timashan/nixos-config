@@ -9,6 +9,24 @@ let
   zennotes = pkgs.callPackage ../../packages/zennotes { };
   gods-eye-view = pkgs.callPackage ../../packages/gods-eye-view { };
 
+  # Avidemux's preview is blank on native Wayland (nixpkgs#445657), and
+  # VDPAU/LibVA overlays stay black on Hyprland XWayland with PRIME.
+  # Force XCB and drop the KDE/Wayland env so Qt simpleRender can paint.
+  avidemux = pkgs.symlinkJoin {
+    name = "avidemux-xcb";
+    paths = [ pkgs.avidemux ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      for bin in avidemux avidemux3_qt5 avidemux3_jobs_qt5; do
+        wrapProgram "$out/bin/$bin" \
+          --set QT_QPA_PLATFORM xcb \
+          --set QT_XCB_GL_INTEGRATION glx \
+          --unset QT_QPA_PLATFORMTHEME \
+          --unset WAYLAND_DISPLAY
+      done
+    '';
+  };
+
   # Resolve ships Qt5 with xcb only. Hyprland/Caelestia launch apps with
   # QT_QPA_PLATFORM=wayland, which aborts in QGuiApplication. Force XWayland
   # and the NVIDIA dGPU (PRIME offload).
@@ -67,7 +85,6 @@ in
       vlc
       mpv
       handbrake
-      avidemux
       ffmpeg-full
       libva-utils
       yt-dlp
@@ -101,6 +118,9 @@ in
       zstd
       rar
     ])
-    ++ [ davinci-resolve ]
+    ++ [
+      avidemux
+      davinci-resolve
+    ]
     ++ lib.optional (pkgs ? libreoffice-qt6-fresh) pkgs.libreoffice-qt6-fresh;
 }
