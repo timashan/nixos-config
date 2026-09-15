@@ -2,6 +2,7 @@
   lib,
   pkgs,
   username,
+  helium-browser,
   ...
 }:
 
@@ -27,6 +28,49 @@ let
     '';
   };
 
+  seedHelium = pkgs.writeShellApplication {
+    name = "seed-helium-profile";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.python3
+    ];
+    text = ''
+      export HELIUM_BOOKMARK_CONVERTER=${../../home/main/netscape-to-chromium-bookmarks.py}
+      export HELIUM_EXTENSIONS_DIR=${heliumExtensions}
+      python3 ${../../home/main/seed-helium-profile.py}
+    '';
+  };
+
+  heliumExtensions = pkgs.callPackage ../../packages/helium-extensions { };
+
+  wrapHelium =
+    pkg:
+    let
+      wrapped = pkgs.symlinkJoin {
+        name = "${pkg.pname or "helium"}-seeded";
+        paths = [ pkg ];
+        nativeBuildInputs = [ pkgs.makeWrapper ];
+        postBuild = ''
+          wrapProgram "$out/bin/helium" \
+            --run ${lib.escapeShellArg (lib.getExe seedHelium)} \
+            --add-flags --no-default-browser-check
+          mkdir -p "$out/share/applications"
+          rm -f "$out/share/applications/helium.desktop"
+          cp "${pkg}/share/applications/helium.desktop" "$out/share/applications/helium.desktop"
+          chmod u+w "$out/share/applications/helium.desktop"
+          substituteInPlace "$out/share/applications/helium.desktop" \
+            --replace-fail "${pkg}/bin/helium" "$out/bin/helium"
+        '';
+      };
+    in
+    wrapped
+    // {
+      inherit (pkg) pname version meta;
+      override = args: wrapHelium (pkg.override args);
+    };
+
+  heliumPkg = wrapHelium helium-browser.packages.${pkgs.stdenv.hostPlatform.system}.helium;
+
   # Resolve ships Qt5 with xcb only. Hyprland/Caelestia launch apps with
   # QT_QPA_PLATFORM=wayland, which aborts in QGuiApplication. Force XWayland
   # and the NVIDIA dGPU (PRIME offload).
@@ -51,6 +95,11 @@ let
 in
 {
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
+
+  programs.helium = {
+    enable = true;
+    package = heliumPkg;
+  };
 
   programs.thunderbird = {
     enable = true;

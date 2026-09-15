@@ -40,6 +40,11 @@
       inputs.home-manager.follows = "home-manager";
     };
 
+    helium-browser = {
+      url = "github:oxcl/nix-flake-helium-browser";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     caelestia-shell = {
       url = "github:caelestia-dots/shell";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -67,6 +72,7 @@
       hermes-agent,
       herdr,
       zen-browser,
+      helium-browser,
       caelestia-shell,
       caelestia-dots,
       localConfig,
@@ -140,6 +146,7 @@
             claude-desktop
             hermes-agent
             herdr
+            helium-browser
             ;
         };
 
@@ -147,6 +154,8 @@
           hostPath
 
           { nixpkgs.overlays = overlays; }
+
+          helium-browser.nixosModules.default
 
           ./modules/nixos/gpu-screen-recorder-ui.nix
           {

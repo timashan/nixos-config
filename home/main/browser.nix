@@ -1,13 +1,37 @@
-{ config, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   mkAmoExtension = slug: {
     install_url = "https://addons.mozilla.org/firefox/downloads/latest/${slug}/latest.xpi";
     installation_mode = "force_installed";
   };
+
+  bookmarksHtml = "/etc/nixos/local/bookmarks.html";
+  heliumExtensions = pkgs.callPackage ../../packages/helium-extensions { };
+  seedHelium = pkgs.writeShellApplication {
+    name = "seed-helium-profile";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.python3
+    ];
+    text = ''
+      export HELIUM_BOOKMARK_CONVERTER=${./netscape-to-chromium-bookmarks.py}
+      export HELIUM_EXTENSIONS_DIR=${heliumExtensions}
+      python3 ${./seed-helium-profile.py}
+    '';
+  };
 in
 {
   home.file."${config.home.homeDirectory}/.config/zen/profiles.ini".force = true;
+
+  home.activation.heliumBookmarks = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    $DRY_RUN_CMD ${lib.getExe seedHelium}
+  '';
 
   programs.zen-browser = {
     enable = true;
@@ -26,7 +50,7 @@ in
       path = "cr3ad36v.Default Profile";
 
       settings = {
-        "browser.bookmarks.file" = "/etc/nixos/local/bookmarks.html";
+        "browser.bookmarks.file" = bookmarksHtml;
         "browser.places.importBookmarksHTML" = true;
         "browser.toolbars.bookmarks.visibility" = "always";
         "extensions.autoDisableScopes" = 0;
