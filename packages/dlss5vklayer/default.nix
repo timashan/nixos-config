@@ -48,6 +48,11 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     cp -r root/usr/. "$out/"
     install -m755 ${./dlssnr-run} "$out/bin/dlssnr-run"
     install -m755 ${./dlssnr-upscale} "$out/bin/dlssnr-upscale"
+    install -Dm644 ${./gamescope-mouse-sync.lua} \
+      "$out/share/dlssnr/gamescope-scripts/mouse-sync.lua"
+    substituteInPlace "$out/bin/dlssnr-upscale" \
+      --replace-fail '@gamescopeScripts@' '${gamescope}/share/gamescope/scripts' \
+      --replace-fail '@dlssnrScripts@' "$out/share/dlssnr/gamescope-scripts"
     substituteInPlace "$out/bin/dlssnr-helper" \
       --replace-fail 'RUNTIME_DIR="/tmp/dlssnr-''${DLSSNR_UID:-$UID}"' \
         'RUNTIME_DIR="$XDG_DATA_HOME/dlssnr/runtime"' \

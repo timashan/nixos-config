@@ -46,6 +46,13 @@ to a fullscreen 1080p output. NVIDIA offload goes outside the wrapper so it appl
 to both the game and Gamescope. This is spatial FSR 1, not DLSS Super Resolution;
 neural processing still costs GPU time, so measure performance in the game.
 
+The wrapper loads a private Gamescope Lua script that disables explicit
+synchronization before game clients connect. This resolved mouse-motion stutter
+in Control on this NVIDIA setup, using the workaround reported in
+[Gamescope issue #1626](https://github.com/ValveSoftware/gamescope/issues/1626#issuecomment-2636817984).
+It applies only to `dlssnr-upscale` launches and keeps FSR and VKLayer enabled.
+Restart the game after installing the change.
+
 Optional dimensions can be supplied before the command, for example:
 
 ```text

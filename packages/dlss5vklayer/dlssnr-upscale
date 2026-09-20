@@ -23,6 +23,8 @@ done
 # Enable neural processing only in the child game, never in the compositor.
 # Setting this explicitly also overrides a layer enabled in the parent shell.
 export VKLayer_DLSS5=0
+# Keep standard/custom scripts and scope the mouse-sync workaround to this launch.
+export GAMESCOPE_SCRIPT_PATH="${GAMESCOPE_SCRIPT_PATH:-@gamescopeScripts@:/etc/gamescope/scripts}:@dlssnrScripts@"
 # The direct Wayland backend crashes in the current NVIDIA/Hyprland setup.
 exec gamescope --backend sdl -w "$game_width" -h "$game_height" \
   -W "$output_width" -H "$output_height" -F fsr -f -- dlssnr-run "$@"
