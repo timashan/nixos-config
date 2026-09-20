@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ "$#" -eq 0 ]; then
+  echo 'Usage: dlssnr-run COMMAND [ARGS...]' >&2
+  exit 2
+fi
+
+# NixOS Steam has a private /tmp, outside pressure-vessel's own container.
+# Use the same home-directory mapping as the helper and GUI.
+export DLSSNR_SHM="${DLSSNR_SHM:-${XDG_DATA_HOME:-$HOME/.local/share}/dlssnr/runtime/shm.bin}"
+export VKLayer_DLSS5=1
+dlssnr_shared_dir="$(dirname "$DLSSNR_SHM")"
+export PRESSURE_VESSEL_FILESYSTEMS_RW="${PRESSURE_VESSEL_FILESYSTEMS_RW:+$PRESSURE_VESSEL_FILESYSTEMS_RW:}$dlssnr_shared_dir"
+exec "$@"

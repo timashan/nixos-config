@@ -6,6 +6,7 @@
 }:
 
 let
+  dlss5vklayer = pkgs.callPackage ../../packages/dlss5vklayer { };
   gamescopeBin = "/run/wrappers/bin/gamescope";
   steamReal = config.programs.steam.package;
 
@@ -110,6 +111,11 @@ in
 
   hardware.steam-hardware.enable = true;
 
+  # Both architecture manifests are included; the Vulkan loader selects its own.
+  # Processing remains opt-in through VKLayer_DLSS5=1 for each game.
+  hardware.graphics.extraPackages = [ dlss5vklayer ];
+  hardware.graphics.extraPackages32 = [ dlss5vklayer ];
+
   programs.gamemode.enable = true;
   programs.gamescope = {
     enable = true;
@@ -119,6 +125,7 @@ in
   services.displayManager.sessionPackages = [ steamGamescopeSession ];
 
   environment.systemPackages = with pkgs; [
+    dlss5vklayer
     (lib.hiPrio steamScoped)
     wineWow64Packages.stable
     winetricks

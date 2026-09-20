@@ -114,6 +114,8 @@
       ];
     in
     {
+      packages.${system}.dlss5vklayer = pkgs.callPackage ./packages/dlss5vklayer { };
+
       formatter.${system} = pkgs.writeShellApplication {
         name = "nixfmt";
         runtimeInputs = [
