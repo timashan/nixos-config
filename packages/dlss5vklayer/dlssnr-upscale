@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ "$#" -eq 0 ] || [ "$1" = --help ]; then
+  echo 'Usage: nvidia-offload dlssnr-upscale COMMAND [ARGS...]'
+  echo 'Render at 1280x720, apply DLSS5VKLayer, then upscale to 1920x1080 with Gamescope FSR.'
+  echo 'Override dimensions with DLSSNR_GAME_WIDTH/HEIGHT and DLSSNR_OUTPUT_WIDTH/HEIGHT.'
+  if [ "$#" -eq 0 ]; then exit 2; fi
+  exit 0
+fi
+
+game_width="${DLSSNR_GAME_WIDTH:-1280}"
+game_height="${DLSSNR_GAME_HEIGHT:-720}"
+output_width="${DLSSNR_OUTPUT_WIDTH:-1920}"
+output_height="${DLSSNR_OUTPUT_HEIGHT:-1080}"
+for dimension in "$game_width" "$game_height" "$output_width" "$output_height"; do
+  if [[ ! "$dimension" =~ ^[1-9][0-9]{0,4}$ ]]; then
+    echo "dlssnr-upscale: invalid resolution dimension: $dimension" >&2
+    exit 2
+  fi
+done
+
+# Enable neural processing only in the child game, never in the compositor.
+# Setting this explicitly also overrides a layer enabled in the parent shell.
+export VKLayer_DLSS5=0
+# The direct Wayland backend crashes in the current NVIDIA/Hyprland setup.
+exec gamescope --backend sdl -w "$game_width" -h "$game_height" \
+  -W "$output_width" -H "$output_height" -F fsr -f -- dlssnr-run "$@"

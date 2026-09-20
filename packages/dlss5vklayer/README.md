@@ -33,6 +33,38 @@ In the GUI, start the helper. For a Steam game, use these launch options:
 dlssnr-run nvidia-offload %command%
 ```
 
+For 720p rendering with Gamescope FSR 1 upscaling to 1080p, use instead:
+
+```text
+nvidia-offload dlssnr-upscale %command%
+```
+
+Start the helper and enable neural processing in the GUI as above. Set the game's
+resolution to 1280x720. The wrapper gives the game a 720p virtual display, enables
+DLSS5VKLayer only for the game, then uses Gamescope to upscale the resulting frame
+to a fullscreen 1080p output. NVIDIA offload goes outside the wrapper so it applies
+to both the game and Gamescope. This is spatial FSR 1, not DLSS Super Resolution;
+neural processing still costs GPU time, so measure performance in the game.
+
+Optional dimensions can be supplied before the command, for example:
+
+```text
+DLSSNR_GAME_WIDTH=1600 DLSSNR_GAME_HEIGHT=900 nvidia-offload dlssnr-upscale %command%
+```
+
+Output dimensions use `DLSSNR_OUTPUT_WIDTH` and `DLSSNR_OUTPUT_HEIGHT` (defaults
+1920 and 1080). This wrapper is for launching a game from the normal desktop;
+avoid nesting it inside an existing Gamescope Steam session. Remove Swapper's
+per-game injection with its Restore originals action before testing this path.
+Changing Steam launch options alone does not remove those installed DLLs.
+
+The wrapper selects Gamescope's SDL backend because its direct Wayland backend
+failed the graphics smoke test on this NVIDIA/Hyprland setup. A Vulkan cube test
+rendered with the layer loaded, but neural processing was disabled during that
+test. Gamescope 3.16.23 also aborts during shutdown after the test app exits,
+including without DLSS5VKLayer; this wrapper does not fix that upstream/runtime
+issue. In-game neural output and performance still require verification.
+
 The launcher enables the layer and sets `DLSSNR_SHM` to
 `~/.local/share/dlssnr/runtime/shm.bin` (respecting `XDG_DATA_HOME`). The helper and
 GUI use the same location. This is essential on NixOS: Steam's outer FHS container

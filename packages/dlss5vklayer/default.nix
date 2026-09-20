@@ -14,6 +14,7 @@
   gnused,
   gnutar,
   gzip,
+  gamescope,
   pciutils,
   util-linux,
   wineWow64Packages,
@@ -46,6 +47,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     mkdir -p "$out"
     cp -r root/usr/. "$out/"
     install -m755 ${./dlssnr-run} "$out/bin/dlssnr-run"
+    install -m755 ${./dlssnr-upscale} "$out/bin/dlssnr-upscale"
     substituteInPlace "$out/bin/dlssnr-helper" \
       --replace-fail 'RUNTIME_DIR="/tmp/dlssnr-''${DLSSNR_UID:-$UID}"' \
         'RUNTIME_DIR="$XDG_DATA_HOME/dlssnr/runtime"' \
@@ -83,6 +85,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
         ]
       }
     wrapProgram "$out/bin/dlssnr-run" --prefix PATH : ${lib.makeBinPath [ coreutils ]}
+    wrapProgram "$out/bin/dlssnr-upscale" \
+      --prefix PATH : "$out/bin:${lib.makeBinPath [ gamescope ]}"
     wrapProgramShell "$out/bin/dlssnr-gui" "''${qtWrapperArgs[@]}" \
       --prefix PATH : "$out/bin" \
       --run 'export DLSSNR_SHM="''${DLSSNR_SHM:-''${XDG_DATA_HOME:-$HOME/.local/share}/dlssnr/runtime/shm.bin}"'
