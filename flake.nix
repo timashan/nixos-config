@@ -9,6 +9,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    ghelper = {
+      url = "github:utajum/g-helper-linux/v1.0.93?dir=nixos";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     codex-desktop-linux = {
       url = "github:ilysenko/codex-desktop-linux";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -66,6 +71,7 @@
       self,
       nixpkgs,
       home-manager,
+      ghelper,
       codex-desktop-linux,
       codex-cli-nix,
       claude-desktop,
@@ -104,6 +110,7 @@
       };
       codexCli = codex-cli-nix.packages.${system}.default;
       overlays = [
+        (import ./packages/ghelper/overlay.nix)
         (final: prev: {
           foot = prev.foot.overrideAttrs (old: {
             patches = (old.patches or [ ]) ++ [
@@ -154,6 +161,8 @@
 
         modules = [
           hostPath
+
+          ghelper.nixosModules.default
 
           { nixpkgs.overlays = overlays; }
 

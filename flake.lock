@@ -202,6 +202,29 @@
         "type": "github"
       }
     },
+    "ghelper": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "dir": "nixos",
+        "lastModified": 1789729020,
+        "narHash": "sha256-cBKsjC4KhMjjwcTl5ea1+A0ppcb3E9/3gA8apI016YM=",
+        "owner": "utajum",
+        "repo": "g-helper-linux",
+        "rev": "1459abdbcd4b891286d20786ac94b0e87849e02b",
+        "type": "github"
+      },
+      "original": {
+        "dir": "nixos",
+        "owner": "utajum",
+        "ref": "v1.0.93",
+        "repo": "g-helper-linux",
+        "type": "github"
+      }
+    },
     "helium-browser": {
       "inputs": {
         "nixpkgs": [
@@ -473,6 +496,7 @@
         "claude-desktop": "claude-desktop",
         "codex-cli-nix": "codex-cli-nix",
         "codex-desktop-linux": "codex-desktop-linux",
+        "ghelper": "ghelper",
         "helium-browser": "helium-browser",
         "herdr": "herdr",
         "hermes-agent": "hermes-agent",

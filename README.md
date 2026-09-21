@@ -295,6 +295,19 @@ nix flake update localConfig
 sudo nixos-rebuild switch --flake /etc/nixos#<host>
 ```
 
+## ASUS laptop controls
+
+The ASUS host uses the unofficial
+[G-Helper Linux port](https://github.com/utajum/g-helper-linux), pinned to v1.0.93
+through its upstream NixOS module. After rebuilding, launch **G-Helper** from
+the application menu or run `ghelper`.
+
+G-Helper replaces asusd, supergfxd, and power-profiles-daemon for performance,
+fan, and GPU controls. The module installs hardware access rules and privileged
+helpers; pending GPU mode changes are applied at boot. PRIME offload remains
+the default, with automatic Eco mode at boot disabled. Enable autostart in
+G-Helper if you want it running after login.
+
 ## Obsidian sync
 
 Obsidian is installed by the system configuration. The vault path is:
