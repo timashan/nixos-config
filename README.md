@@ -305,8 +305,13 @@ the application menu or run `ghelper`.
 G-Helper replaces asusd, supergfxd, and power-profiles-daemon for performance,
 fan, and GPU controls. The module installs hardware access rules and privileged
 helpers; pending GPU mode changes are applied at boot. PRIME offload remains
-the default, with automatic Eco mode at boot disabled. Enable autostart in
-G-Helper if you want it running after login.
+the default, with automatic Eco mode at boot disabled. Home Manager disables
+G-Helper autostart and startup update checks, removes its existing login launcher,
+and makes manual launches open the window. Other preferences are preserved in
+the writable config. In Hyprland, the Armoury Crate / ROG button launches
+G-Helper on demand; while it is running, its own button handler toggles the
+window. Quit G-Helper before rebuilding so the running app does
+not overwrite these settings with its previously loaded values.
 
 ## Obsidian sync
 

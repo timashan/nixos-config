@@ -5,6 +5,8 @@ final: prev: {
     prev.buildDotnetModule (
       args
       // prev.lib.optionalAttrs ((args.pname or "") == "ghelper") {
+        patches = (args.patches or [ ]) ++ [ ./shutdown-cancellation.patch ];
+
         nugetDeps = map (
           dep:
           let

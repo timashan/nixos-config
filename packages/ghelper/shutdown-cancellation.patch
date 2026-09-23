@@ -1,0 +1,22 @@
+diff --git a/src/App.axaml.cs b/src/App.axaml.cs
+--- a/src/App.axaml.cs
++++ b/src/App.axaml.cs
+@@ -140,5 +140,18 @@ public partial class App : Application
+     public override void OnFrameworkInitializationCompleted()
+     {
++        // Avalonia 12.1.2's DBusTrayIconImpl.WatchAsync lets its canceled
++        // watcher task escape once the tray icon has been disposed. That
++        // async-void callback can reach the UI dispatcher during shutdown.
++        // Handle only cancellation during an already requested shutdown.
++        Avalonia.Threading.Dispatcher.UIThread.UnhandledException += (_, e) =>
++        {
++            if (IsShuttingDown && e.Exception is TaskCanceledException)
++            {
++                Logger.WriteLine("Shutdown: handled canceled tray watcher");
++                e.Handled = true;
++            }
++        };
++
+         // Exit if another ghelper is already running
+         if (!TryAcquireSingleInstanceLock())
+         {
