@@ -7,6 +7,7 @@
 }:
 
 let
+  signal-desktop = pkgs.callPackage ../../packages/signal-desktop { };
   zennotes = pkgs.callPackage ../../packages/zennotes { };
   gods-eye-view = pkgs.callPackage ../../packages/gods-eye-view { };
 
