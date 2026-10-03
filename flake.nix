@@ -4,6 +4,9 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
+    # Update AI applications independently of the base system.
+    ai-nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+
     # Keep Vaultwarden compatible with auto-updating Bitwarden clients.
     vaultwarden-nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
@@ -33,12 +36,12 @@
     };
 
     hermes-agent = {
-      url = "github:nousresearch/hermes-agent/v2026.8.31";
+      url = "github:nousresearch/hermes-agent/v2026.9.24";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     herdr = {
-      url = "github:ogulcancelik/herdr/v0.8.2";
+      url = "github:ogulcancelik/herdr/v0.9.3";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -73,6 +76,7 @@
     {
       self,
       nixpkgs,
+      ai-nixpkgs,
       vaultwarden-nixpkgs,
       home-manager,
       ghelper,
@@ -150,6 +154,12 @@
       nixosConfigurations.${hostname} = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = {
+          aiPkgs = import ai-nixpkgs {
+            inherit system;
+            config.allowUnfree = true;
+            # Preserve the existing OpenClaw exception for its updated version.
+            config.permittedInsecurePackages = [ "openclaw-2026.6.33" ];
+          };
           vaultwardenPkgs = vaultwarden-nixpkgs.legacyPackages.${system};
           inherit
             hostname

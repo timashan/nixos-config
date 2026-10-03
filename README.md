@@ -295,6 +295,23 @@ nix flake update localConfig
 sudo nixos-rebuild switch --flake /etc/nixos#<host>
 ```
 
+## Updating AI tools
+
+AI applications use the separately pinned `ai-nixpkgs` input so they can track
+newer packages without upgrading the base NixOS system. Codex, Claude Desktop,
+Hermes, and Herdr have their own inputs.
+
+```bash
+nix flake update ai-nixpkgs codex-cli-nix codex-desktop-linux claude-desktop
+nix build .#nixosConfigurations.tuf-a15.config.system.build.toplevel
+sudo nixos-rebuild switch --flake /etc/nixos#tuf-a15
+```
+
+Hermes and Herdr use release tags in `flake.nix`; change those tags when updating
+them. Grok and Oh My Pi have local packages under `packages/`; update their
+versions, npm lockfiles, and `npmDepsHash` together. The OpenClaw exception in
+the `aiPkgs` import is version-specific and must be reviewed when it changes.
+
 ## ASUS laptop controls
 
 The ASUS host uses the unofficial

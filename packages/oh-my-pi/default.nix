@@ -7,10 +7,10 @@
 
 buildNpmPackage rec {
   pname = "oh-my-pi";
-  version = "18.1.10";
+  version = "18.5.1";
 
   src = ./.;
-  npmDepsHash = "sha256-G7ok0rrCOegtfR0Rzy6RvopFI/E9g/vfesbXJ8FHV0c=";
+  npmDepsHash = "sha256-Voq2fxFpnIJEJMEdTvV28tVW+HadC6Ml3De0KfVmRzo=";
 
   dontNpmBuild = true;
   npmFlags = [ "--ignore-scripts" ];
@@ -22,9 +22,6 @@ buildNpmPackage rec {
 
     mkdir -p "$out/lib/oh-my-pi" "$out/bin"
     cp -r node_modules package.json package-lock.json "$out/lib/oh-my-pi/"
-    substituteInPlace "$out/lib/oh-my-pi/node_modules/@oh-my-pi/pi-coding-agent/dist/cli.js" \
-      --replace-fail 'bun:">=1.3.14"' 'bun:">=1.3.13"'
-
     makeWrapper ${bun}/bin/bun "$out/bin/omp" \
       --add-flags "$out/lib/oh-my-pi/node_modules/@oh-my-pi/pi-coding-agent/dist/cli.js"
 

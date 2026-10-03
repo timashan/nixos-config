@@ -1,17 +1,15 @@
 {
   lib,
   buildNpmPackage,
-  nodejs_24,
-  makeWrapper,
 }:
 
 buildNpmPackage rec {
   pname = "grok";
-  version = "1.0.13";
+  version = "1.0.46";
 
   src = ./.;
 
-  npmDepsHash = "sha256-hYtyswu8PpSBX1l32LtGF6B4bSVdzIueVf589uCG2V0=";
+  npmDepsHash = "sha256-cJgONrcPwjg8AIaQfi9e4Hic0J0IAkLaFIqpZRoNdfU=";
 
   dontNpmBuild = true;
 
@@ -21,8 +19,7 @@ buildNpmPackage rec {
     mkdir -p "$out/lib/grok" "$out/bin"
     cp -r node_modules package.json package-lock.json "$out/lib/grok/"
 
-    makeWrapper ${nodejs_24}/bin/node "$out/bin/grok" \
-      --add-flags "$out/lib/grok/node_modules/@xai-official/grok/bin/grok"
+    ln -s "$out/lib/grok/node_modules/@xai-official/grok/bin/grok" "$out/bin/grok"
 
     runHook postInstall
   '';

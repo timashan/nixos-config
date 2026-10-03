@@ -31,9 +31,6 @@
   nixpkgs.config.permittedInsecurePackages = [
     "electron-39.8.10"
     "electron-40.10.5"
-    # OpenClaw is marked insecure because agents can be prompt-injected by
-    # untrusted content while running with the user's system access.
-    "openclaw-2026.5.7"
   ];
 
   boot.loader = {

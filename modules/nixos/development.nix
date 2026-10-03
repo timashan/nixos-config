@@ -1,6 +1,7 @@
 {
   lib,
   pkgs,
+  aiPkgs,
   username,
   ...
 }:
@@ -8,7 +9,7 @@
 let
   cursorCli = pkgs.symlinkJoin {
     name = "cursor-cli-with-agent-alias";
-    paths = [ pkgs.cursor-cli ];
+    paths = [ aiPkgs.cursor-cli ];
     postBuild = ''
       ln -s "$out/bin/cursor-agent" "$out/bin/agent"
     '';
@@ -130,8 +131,8 @@ in
       xdg-utils
     ])
     ++ lib.optional (pkgs ? vscode) pkgs.vscode
-    ++ lib.optional (pkgs ? code-cursor) pkgs.code-cursor
-    ++ lib.optional (pkgs ? cursor-cli) cursorCli
+    ++ lib.optional (aiPkgs ? code-cursor) aiPkgs.code-cursor
+    ++ lib.optional (aiPkgs ? cursor-cli) cursorCli
     ++ lib.optional (pkgs ? android-studio) androidStudio
-    ++ lib.optional (pkgs ? gemini-cli) pkgs.gemini-cli;
+    ++ lib.optional (aiPkgs ? gemini-cli) aiPkgs.gemini-cli;
 }
