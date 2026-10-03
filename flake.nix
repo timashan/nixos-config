@@ -4,6 +4,9 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
+    # Keep Vaultwarden compatible with auto-updating Bitwarden clients.
+    vaultwarden-nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -70,6 +73,7 @@
     {
       self,
       nixpkgs,
+      vaultwarden-nixpkgs,
       home-manager,
       ghelper,
       codex-desktop-linux,
@@ -146,6 +150,7 @@
       nixosConfigurations.${hostname} = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = {
+          vaultwardenPkgs = vaultwarden-nixpkgs.legacyPackages.${system};
           inherit
             hostname
             username

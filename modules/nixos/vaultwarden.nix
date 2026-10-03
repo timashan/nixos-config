@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ lib, vaultwardenPkgs, ... }:
 
 {
   services.tailscale = {
@@ -8,6 +8,8 @@
 
   services.vaultwarden = {
     enable = true;
+    package = vaultwardenPkgs.vaultwarden;
+    webVaultPackage = vaultwardenPkgs.vaultwarden.webvault;
     dbBackend = "sqlite";
     backupDir = "/var/backup/vaultwarden";
 

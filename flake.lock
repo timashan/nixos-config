@@ -503,6 +503,7 @@
         "home-manager": "home-manager_2",
         "localConfig": "localConfig",
         "nixpkgs": "nixpkgs",
+        "vaultwarden-nixpkgs": "vaultwarden-nixpkgs",
         "zen-browser": "zen-browser"
       }
     },
@@ -579,6 +580,22 @@
       "original": {
         "owner": "pyproject-nix",
         "repo": "uv2nix",
+        "type": "github"
+      }
+    },
+    "vaultwarden-nixpkgs": {
+      "locked": {
+        "lastModified": 1790920529,
+        "narHash": "sha256-nQyFkMR78WP6PiXKkDW2SjqzLf/spQqjRuxRGSbcV8k=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "774debe7a0d1b496e35677ad955a1011c6ff74f3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-26.05",
+        "repo": "nixpkgs",
         "type": "github"
       }
     },
