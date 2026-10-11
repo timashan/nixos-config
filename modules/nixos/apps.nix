@@ -156,6 +156,13 @@ in
       telegram-desktop
       bitwarden-desktop
       obsidian
+      # Public-source research and metadata inspection.
+      maigret
+      theharvester
+      subfinder
+      exiftool
+      whois
+      dnsutils
       zennotes
       gods-eye-view
       syncthing
