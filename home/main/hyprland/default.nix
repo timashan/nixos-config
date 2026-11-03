@@ -694,6 +694,29 @@ in
     ) pkgs.nerd-fonts.jetbrains-mono;
 
   xdg.configFile = hyprlandModuleConfig // {
+    # Keep document/project search, but avoid rescanning live browser databases
+    # and tool caches whenever an application writes its runtime state.
+    "vicinae/performance.json".text = builtins.toJSON {
+      providers.files.preferences.excludedIndexingPaths = map (path: "${home}/${path}") [
+        ".cache"
+        ".config/zen"
+        ".config/net.imput.helium"
+        ".config/chromium"
+        ".local/state"
+        ".local/share/vicinae"
+        ".local/share/Trash"
+        ".codex"
+        ".claude"
+        ".npm"
+        ".cargo"
+        ".rustup"
+        ".gradle"
+        ".android"
+        ".bun"
+        ".nix-profile"
+        ".nix-defexpr"
+      ];
+    };
     "uwsm/env".source = "${config.home.sessionVariablesPackage}/etc/profile.d/hm-session-vars.sh";
     # Keep the AMD-connected internal panel on the primary renderer. With
     # NVIDIA primary, eDP capture stalled while HDMI continued rendering.
@@ -878,6 +901,11 @@ in
 
     Install.WantedBy = [ "graphical-session.target" ];
   };
+
+  home.activation.vicinaePerformance = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    run ${pkgs.python3}/bin/python3 ${../configure-vicinae.py} \
+      "${config.xdg.configHome}/vicinae/settings.json" ./performance.json
+  '';
 
   home.activation.clearOldHyprShell = lib.hm.dag.entryBefore [ "linkGeneration" ] ''
     for rel in \

@@ -22,7 +22,13 @@
     dates = "weekly";
     options = "--delete-older-than 14d";
   };
-  nix.optimise.automatic = true;
+  # A daily full-store scan was doing substantial I/O without finding duplicates.
+  # Keep catch-up for laptops that are off at the scheduled time, but only weekly.
+  nix.optimise = {
+    automatic = true;
+    dates = [ "Sat 12:00" ];
+    randomizedDelaySec = "1h";
+  };
 
   # Needed for NVIDIA, Steam, Discord, VS Code, Cursor, and Android Studio.
   nixpkgs.config.allowUnfree = true;

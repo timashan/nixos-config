@@ -7,6 +7,7 @@
   librsvg,
   poppler-utils,
   python3,
+  shared-mime-info,
   stdenvNoCC,
   wrapGAppsHook3,
 }:
@@ -48,6 +49,18 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   dontBuild = true;
   dontWrapGApps = true;
+
+  preFixup = ''
+    gappsWrapperArgs+=(--prefix XDG_DATA_DIRS : "${shared-mime-info}/share")
+  '';
+
+  doInstallCheck = true;
+  installCheckPhase = ''
+    runHook preInstallCheck
+    XDG_DATA_DIRS="${shared-mime-info}/share" \
+      ${python}/bin/python3 ${./check-preview.py} cover-thumbnailer.py
+    runHook postInstallCheck
+  '';
 
   postPatch = ''
     substituteInPlace cover-thumbnailer.py cover-thumbnailer-gui.py \

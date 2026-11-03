@@ -26,7 +26,8 @@ STAMP = PROFILE / ".nixos-bookmarks.sha256"
 
 
 def helium_running() -> bool:
-    return LOCK.exists()
+    # Chromium's lock points to a host/pid string, not an existing file.
+    return LOCK.is_symlink() or LOCK.exists()
 
 
 def install_external_extensions() -> None:
@@ -41,7 +42,9 @@ def install_external_extensions() -> None:
         if path.name not in wanted:
             path.unlink()
     for name, path in wanted.items():
-        shutil.copyfile(path, dest / name)
+        target = dest / name
+        if not target.is_file() or target.read_bytes() != path.read_bytes():
+            shutil.copyfile(path, target)
 
 
 def merge_prefs() -> None:
@@ -70,7 +73,9 @@ def merge_prefs() -> None:
     browser["check_default_browser"] = False
     browser["default_browser_infobar_last_declined"] = "99999999999999999"
     browser["default_browser_declined_count"] = 999
-    prefs_path.write_text(json.dumps(prefs) + "\n", encoding="utf-8")
+    content = json.dumps(prefs) + "\n"
+    if not prefs_path.is_file() or prefs_path.read_text(encoding="utf-8") != content:
+        prefs_path.write_text(content, encoding="utf-8")
 
 
 def import_bookmarks() -> None:

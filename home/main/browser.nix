@@ -1,7 +1,5 @@
 {
   config,
-  lib,
-  pkgs,
   ...
 }:
 
@@ -12,26 +10,12 @@ let
   };
 
   bookmarksHtml = "/etc/nixos/local/bookmarks.html";
-  heliumExtensions = pkgs.callPackage ../../packages/helium-extensions { };
-  seedHelium = pkgs.writeShellApplication {
-    name = "seed-helium-profile";
-    runtimeInputs = [
-      pkgs.coreutils
-      pkgs.python3
-    ];
-    text = ''
-      export HELIUM_BOOKMARK_CONVERTER=${./netscape-to-chromium-bookmarks.py}
-      export HELIUM_EXTENSIONS_DIR=${heliumExtensions}
-      python3 ${./seed-helium-profile.py}
-    '';
-  };
 in
 {
   home.file."${config.home.homeDirectory}/.config/zen/profiles.ini".force = true;
 
-  home.activation.heliumBookmarks = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    $DRY_RUN_CMD ${lib.getExe seedHelium}
-  '';
+  # The system Helium launcher seeds its profile on demand. Doing the same
+  # work during Home Manager activation unnecessarily delays every login.
 
   programs.zen-browser = {
     enable = true;

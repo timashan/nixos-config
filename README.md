@@ -271,6 +271,13 @@ repository:
 rclone:gdrive:nixos-backups
 ```
 
+Backups run daily at 23:30 with up to 30 minutes of random delay. Repository
+pruning and the data check run separately on Sundays at 02:00, also with up to
+30 minutes of delay. Both timers catch up after missed runs. Maintenance keeps
+the same 14 daily, 8 weekly, and 12 monthly snapshots; it waits for repository
+locks if a backup overlaps. Backup discovery prunes dependency/build folders
+before scanning them. Both jobs run with reduced CPU and I/O priority.
+
 The Restic repository password is stored locally at:
 
 ```text
@@ -329,6 +336,25 @@ the writable config. In Hyprland, the Armoury Crate / ROG button launches
 G-Helper on demand; while it is running, its own button handler toggles the
 window. Quit G-Helper before rebuilding so the running app does
 not overwrite these settings with its previously loaded values.
+
+The NVIDIA module explicitly disables GSP and runtime D3 power switching to
+match the documented resume stability workaround. These module parameters take
+effect after reboot; disabling runtime D3 can increase undocked battery use.
+The optional `asus-armoury` module is requested only on kernels at least 6.19;
+the pinned 6.12 kernel continues to use its existing `asus-wmi` controls.
+
+Nix store optimisation runs weekly on Saturday around noon, with up to one hour
+of random delay and catch-up for missed runs. Vicinae still searches documents
+and projects, but excludes browser profiles, caches, and other live application
+state through `~/.config/vicinae/performance.json`. Its main settings remain
+writable, and explicit settings there take precedence over this import.
+
+Folder previews keep the four-tile layout. Images are reduced to at most
+512×512 before retaining RGBA tiles; video/PDF extraction has a two-second
+timeout and shares a six-second extraction budget per folder. The package's
+install checks exercise size bounds, alpha preservation, file selection,
+converter timeouts, and the folder budget. Helium profile setup runs on launch
+instead of during login, and repeated seeding avoids rewriting unchanged files.
 
 ## Obsidian sync
 

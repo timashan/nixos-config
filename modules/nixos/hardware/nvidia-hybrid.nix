@@ -37,6 +37,13 @@
     powerManagement.finegrained = false;
     dynamicBoost.enable = false;
 
+    # These false NixOS options only omit parameters/firmware; they do not
+    # override the driver's defaults on Ampere-and-newer notebooks.
+    moduleParams.nvidia = {
+      NVreg_DynamicPowerManagement = "0x00";
+      NVreg_EnableGpuFirmware = 0;
+    };
+
     prime = {
       offload.enable = true;
       offload.enableOffloadCmd = true;

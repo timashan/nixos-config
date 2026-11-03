@@ -1,7 +1,16 @@
-{ lib, username, ... }:
+{
+  config,
+  lib,
+  username,
+  ...
+}:
 
 {
-  boot.kernelModules = [ "asus-armoury" ];
+  # The pinned 6.12 kernel exposes the existing asus-wmi controls, but does
+  # not ship the armoury driver. Request it only on kernels that include it.
+  boot.kernelModules = lib.optionals (config.boot.kernelPackages.kernel.kernelAtLeast "6.19") [
+    "asus-armoury"
+  ];
 
   services.ghelper = {
     enable = true;
