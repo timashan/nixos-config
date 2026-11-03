@@ -695,6 +695,35 @@ in
 
   xdg.configFile = hyprlandModuleConfig // {
     "uwsm/env".source = "${config.home.sessionVariablesPackage}/etc/profile.d/hm-session-vars.sh";
+    # Keep the AMD-connected internal panel on the primary renderer. With
+    # NVIDIA primary, eDP capture stalled while HDMI continued rendering.
+    # Resolve DRM card numbers at login because they can change across boots.
+    "uwsm/env-hyprland" = {
+      force = true;
+      text = ''
+        hyprland_amd_card=
+        hyprland_nvidia_card=
+        for hyprland_card in /sys/class/drm/card[0-9]*; do
+          case "''${hyprland_card##*/}" in *-*) continue ;; esac
+          [ -r "$hyprland_card/device/vendor" ] || continue
+          IFS= read -r hyprland_vendor < "$hyprland_card/device/vendor" || continue
+          case "$hyprland_vendor" in
+            0x1002) hyprland_amd_card="/dev/dri/''${hyprland_card##*/}" ;;
+            0x10de) hyprland_nvidia_card="/dev/dri/''${hyprland_card##*/}" ;;
+          esac
+        done
+
+        unset AQ_DRM_DEVICES
+        if [ -n "$hyprland_amd_card" ] && [ -n "$hyprland_nvidia_card" ]; then
+          export AQ_DRM_DEVICES="$hyprland_amd_card:$hyprland_nvidia_card"
+        elif [ -n "$hyprland_amd_card" ]; then
+          export AQ_DRM_DEVICES="$hyprland_amd_card"
+        elif [ -n "$hyprland_nvidia_card" ]; then
+          export AQ_DRM_DEVICES="$hyprland_nvidia_card"
+        fi
+        unset hyprland_amd_card hyprland_nvidia_card hyprland_card hyprland_vendor
+      '';
+    };
     "hypr/hyprland/env.lua".text = patchedEnv;
     "hypr/hyprland/execs.lua".text = patchedExecs;
     "hypr/hyprland/keybinds.lua".text = patchedKeybinds;
